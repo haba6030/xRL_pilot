@@ -1,0 +1,134 @@
+# Claude Code configuration (per user request)
+CLAUDE.md
+
+# Python
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+.python-version
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Analysis outputs (large files)
+*.png
+*.jpg
+*.jpeg
+*.pdf
+!papers/*.pdf
+*.mp4
+*.avi
+
+# But include key analysis result images (for documentation)
+!analysis_*.png
+!immediate_*.png
+!verify_*.png
+
+# Large data files
+*.csv
+!opendata/*.csv
+
+# But include analysis summary CSVs (small files)
+!analysis_summary.json
+!analysis_participant_*.csv
+!immediate_*.csv
+!*_results.csv
+*.txt
+!xRL_pilot/**/*.txt
+!requirements.txt
+*.h5
+*.hdf5
+*.pkl
+*.pickle
+
+# Compiled C++
+*.o
+*.obj
+*.exe
+*.out
+*.app
+*.dll
+*.so
+*.dylib
+xRL_pilot/Model code/*.exe
+xRL_pilot/Model code/compute_planning_depth
+xRL_pilot/Model code/compute_planning_depth_*
+!xRL_pilot/Model code/*.cpp
+!xRL_pilot/Model code/*.h
+
+# MATLAB
+*.asv
+*.m~
+
+# Temporary files
+*.log
+*.tmp
+*.temp
+.cache/
+__pycache__/
+*.pyc
+
+# OS-specific
+Thumbs.db
+.DS_Store
+.Spotlight-V100
+.Trashes
+
+# Project-specific
+.claude/
+results/
+plots/
+checkpoints/
+saved_models/
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Sensitive information (if any)
+.env
+.env.local
+secrets.json
+credentials.json

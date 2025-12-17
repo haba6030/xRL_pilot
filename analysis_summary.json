@@ -1,0 +1,23 @@
+{
+  "total_trials": 67331,
+  "total_participants": 40,
+  "mean_trials_per_participant": 1683.275,
+  "median_response_time": 2.489,
+  "mean_log_likelihood": 1.9542286260606059,
+  "parameter_means": {
+    "pruning threshold": 4.686435915151515,
+    "stopping probability": 0.015639969212121213,
+    "feature drop rate": 0.22177466609424243,
+    "lapse rate": 0.02045378060606061,
+    "active scaling constant": 0.8770269878787877,
+    "center weight": 0.6908876616363636
+  },
+  "parameter_stds": {
+    "pruning threshold": 2.4037614107035368,
+    "stopping probability": 0.08267999010337375,
+    "feature drop rate": 0.11788163532767183,
+    "lapse rate": 0.013868962319322347,
+    "active scaling constant": 0.3743785517227338,
+    "center weight": 0.34479585878427943
+  }
+}
