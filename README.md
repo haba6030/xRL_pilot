@@ -18,8 +18,11 @@ This project investigates whether **planning depth** can be explicitly modeled a
 
 Building on:
 - **van Opheusden et al. (2023)**: Expertise increases planning depth in 4-in-a-row
+https://www.nature.com/articles/s41586-023-06124-2 
 - **Yao et al. (2024)**: Planning horizon as latent confounder in IRL
+https://arxiv.org/abs/2409.18051 
 - **Mhammedi et al. (2023)**: Multi-step inverse RL perspective
+https://arxiv.org/abs/2304.05889 
 
 ---
 
