@@ -61,51 +61,74 @@ https://arxiv.org/abs/2304.05889
 
 **Key Finding**: Expert players show *shallower* planning depth than novices (p=0.01), suggesting efficient rather than deep planning.
 
-### Phase 2: Fixed-h Modeling 🚧 (Next)
+### Phase 2: Planning-Aware AIRL 🚧 (71% Complete)
 
-**Goal**: Implement discrete planning depth h ∈ {1,2,3,4,5} as explicit parameter
+**Goal**: Implement Planning-Aware AIRL with discrete planning depth h ∈ {1,2,4,8}
 
-1. **C++ implementation**
-   - Modify `heuristic` class for fixed depth
-   - Recompile with depth constraints
+**Main Approach**: **Option A (Pure NN)** ⭐ - Random 초기화, 순수 AIRL 학습
+**Baseline**: Option B (BC) - BFS → BC → AIRL (Steps A-E 완료)
 
-2. **Parameter fitting**
-   - Use MATLAB BADS optimizer
-   - Fit (β, lapse) per participant per h
-   - Select optimal h via AIC/BIC
+**Status**: Baseline 완료 (71%), Main experiments 진행 예정
 
-3. **Model selection**
-   - Optimal h distribution across participants
-   - Test h ~ expertise relationship
+#### ✅ Completed Steps (Option B - Baseline)
 
-### Phase 3: Planning-Aware AIRL 📋 (Planned)
+| Step | Description | File | Status |
+|------|-------------|------|--------|
+| A | h-specific 학습 데이터 생성 | `generate_training_data.py` | ✅ |
+| B | Behavior Cloning (BC) | `train_bc.py` | ✅ |
+| C | BC를 PPO로 래핑 | `create_ppo_generator.py` | ✅ |
+| D | Depth-AGNOSTIC 보상 네트워크 | `create_reward_net.py` | ✅ |
+| E | AIRL 학습 | `train_airl.py` | ✅ |
+| F | Multi-Depth 비교 | (next) | 🔄 |
+| G | 평가 및 분석 | (planned) | 📋 |
 
-**Goal**: Compare standard AIRL vs planning-aware AIRL
+#### 🔄 Next: Option A Main Experiments
 
-1. **AIRL baseline**
-   - Infer reward assuming implicit planning
-   - Standard discriminator + generator
+- [ ] Option A 학습 (h=1,2,4,8) - 50K-100K steps each
+- [ ] Performance evaluation
+- [ ] Option A vs B comparison
 
-2. **Planning-constrained AIRL**
-   - Treat h as explicit factor
-   - Compare h ∈ {1,2,3,4,5} variants
-   - Evaluate reward identifiability
+**핵심 원칙**: Planning depth h는 **Policy에만** 존재, **Reward Network**에는 없음
 
-3. **Evaluation**
-   - Likelihood, OOD generalization
-   - Turing test realism
+```python
+# ✅ CORRECT
+policy = DepthLimitedPolicy(h=h)              # h HERE
+reward_net = create_reward_network(env)       # NO h!
+observations.shape == (T+1, 89)               # NO h!
+```
 
-### Phase 4: Clinical & Neural 🔮 (Exploratory)
+**Quick Start**:
+```bash
+cd fourinarow_airl
+conda activate pedestrian_analysis
+export KMP_DUPLICATE_LIB_OK=TRUE
 
-- Clinical traits → planning parameters
-- fMRI trial-wise regressors
-- Individual differences mapping
+# Run full pipeline
+python3 generate_training_data.py --num_episodes 100
+python3 train_bc.py --n_epochs 50
+python3 create_ppo_generator.py
+python3 train_airl.py --total_timesteps 50000
+```
+
+**문서**: [PHASE2_PROGRESS.md](progress/PHASE2_PROGRESS.md), [AIRL_DESIGN.md](docs/AIRL_DESIGN.md)
+
+### Phase 3: Clinical & Neural 🔮 (Planned)
+
+**Goal**: Apply Planning-Aware AIRL to clinical traits and neural correlates
+
+1. **Clinical modeling**
+   - Clinical traits → planning parameters
+   - Explainable individual differences
+
+2. **Neural correlates**
+   - fMRI trial-wise regressors
+   - Planning parameter mapping
 
 ---
 
 ## 🚀 Quick Start
 
-### Installation
+### Installation after setting conda env
 
 ```bash
 # Clone repository
@@ -155,7 +178,22 @@ print(main_model[['pruning threshold', 'lapse rate', 'log-likelihood']].describe
 
 ```
 xRL_pilot/
-├── opendata/                  # Experimental data (CSV)
+├── fourinarow_airl/          # Phase 2 implementation (Planning-Aware AIRL)
+│   ├── generate_training_data.py  # Step A
+│   ├── train_bc.py                # Step B
+│   ├── create_ppo_generator.py    # Step C
+│   ├── create_reward_net.py       # Step D
+│   ├── train_airl.py              # Step E
+│   ├── airl_utils.py              # Utilities
+│   └── fourinarow_env.py          # Environment
+├── data/
+│   ├── training_trajectories/     # Step A outputs
+│   └── expert_trajectories/       # Expert data
+├── models/
+│   ├── bc_policies/               # Step B outputs
+│   ├── ppo_generators/            # Step C outputs
+│   └── airl_results/              # Step E outputs
+├── opendata/                  # Phase 1 experimental data (CSV)
 │   ├── raw_data.csv          # 67K trials
 │   └── model_fits_*.csv      # 22 model variants
 ├── papers/                    # Reference papers (PDF)
@@ -165,13 +203,23 @@ xRL_pilot/
 │   │   ├── heuristic.cpp     # 17 feature weights
 │   │   └── matlab wrapper/   # Parameter fitting (BADS)
 │   └── Analysis notebooks/   # Jupyter notebooks
-├── *.py                      # Analysis scripts
-├── PROJECT_SUMMARY.md        # Detailed project documentation
-├── FOLDER_STRUCTURE.md       # Complete directory guide
+├── *.py                      # Phase 1 analysis scripts
+├── AIRL_DESIGN.md            # Phase 2 design document
+├── PHASE2_PROGRESS.md        # Phase 2 progress tracking
+├── IMPLEMENTATION_NOTES.md   # Technical implementation details
+├── CLAUDE.md                 # Full research plan
 └── README.md                 # This file
 ```
 
-See `FOLDER_STRUCTURE.md` for detailed file descriptions.
+**Phase 2 문서**:
+- [AIRL_DESIGN.md](docs/AIRL_DESIGN.md) - Planning-Aware AIRL 설계
+- [AIRL_COMPLETE_GUIDE.md](docs/AIRL_COMPLETE_GUIDE.md) - 전체 실행 가이드 ⭐
+- [PHASE2_PROGRESS.md](progress/PHASE2_PROGRESS.md) - 현재 진행 상황 (71% complete)
+- [IMPLEMENTATION_NOTES.md](docs/IMPLEMENTATION_NOTES.md) - 구현 기술 참고사항
+
+**Phase 1 문서** (archived):
+- [PROJECT_SUMMARY.md](archive/PROJECT_SUMMARY.md) - Phase 1 detailed documentation
+- [FOLDER_STRUCTURE.md](archive/FOLDER_STRUCTURE.md) - Complete directory guide
 
 ---
 
@@ -216,8 +264,8 @@ Correlation with performance: r = -0.50 (p < 0.01)
 ## 🤝 Contributing
 
 This is a research project. For collaboration inquiries:
-- See `PROJECT_SUMMARY.md` for detailed methodology
-- New contributors: Follow "Team Onboarding Guide" in project summary
+- See [PROJECT_OVERVIEW.md](PROJECT_OVERVIEW.md) for research overview
+- New contributors: Read documentation in order (README → PROJECT_OVERVIEW → AIRL_DESIGN)
 - Questions: Open an issue on GitHub
 
 ---
@@ -239,9 +287,10 @@ MIT License (see LICENSE file)
 ## 🔗 Links
 
 - **Original codebase**: [van Opheusden et al. (2023)](https://github.com/original-repo)
-- **Project documentation**: See `PROJECT_SUMMARY.md`
-- **Detailed structure**: See `FOLDER_STRUCTURE.md`
+- **Project overview**: See [PROJECT_OVERVIEW.md](PROJECT_OVERVIEW.md)
+- **Design document**: See [docs/AIRL_DESIGN.md](docs/AIRL_DESIGN.md)
 
 ---
 
-**Last Updated**: 2024-12-17
+**Last Updated**: 2025-12-26
+**Current Phase**: Phase 2 - Planning-Aware AIRL (71% complete)

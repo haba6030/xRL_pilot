@@ -140,7 +140,7 @@ ax.set_title(f'Corrected Depth (-2): Novice vs Expert\n(p={p_corr:.4f})', fontsi
 ax.grid(axis='y', alpha=0.3)
 
 plt.tight_layout()
-plt.savefig('verify_depth_comparison.png', dpi=150, bbox_inches='tight')
+plt.savefig('figures/verify_depth_comparison.png', dpi=150, bbox_inches='tight')
 print(f"\n✓ 비교 플롯 저장: verify_depth_comparison.png")
 plt.close()
 

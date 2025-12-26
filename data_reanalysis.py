@@ -85,8 +85,8 @@ for idx, param in enumerate(key_params):
     ax.legend()
 
 plt.tight_layout()
-plt.savefig('analysis_parameter_distributions.png', dpi=150, bbox_inches='tight')
-print("✓ 파라미터 분포 플롯 저장: analysis_parameter_distributions.png")
+plt.savefig('figures/analysis_parameter_distributions.png', dpi=150, bbox_inches='tight')
+print("✓ 파라미터 분포 플롯 저장: figures/analysis_parameter_distributions.png")
 plt.close()
 
 # Figure 2: Log-likelihood by participant
@@ -101,8 +101,8 @@ ax.axhline(ll_by_participant.median(), color='red', linestyle='--',
 ax.legend()
 plt.xticks(rotation=90)
 plt.tight_layout()
-plt.savefig('analysis_ll_by_participant.png', dpi=150, bbox_inches='tight')
-print("✓ 참가자별 Log-Likelihood 플롯 저장: analysis_ll_by_participant.png")
+plt.savefig('figures/analysis_ll_by_participant.png', dpi=150, bbox_inches='tight')
+print("✓ 참가자별 Log-Likelihood 플롯 저장: figures/analysis_ll_by_participant.png")
 plt.close()
 
 # Figure 3: Response time distribution
@@ -115,8 +115,8 @@ ax.axvline(raw_data['response_time'].median(), color='red', linestyle='--',
            label=f'Median: {raw_data["response_time"].median():.2f}s')
 ax.legend()
 plt.tight_layout()
-plt.savefig('analysis_response_time.png', dpi=150, bbox_inches='tight')
-print("✓ 응답 시간 분포 플롯 저장: analysis_response_time.png")
+plt.savefig('figures/analysis_response_time.png', dpi=150, bbox_inches='tight')
+print("✓ 응답 시간 분포 플롯 저장: figures/analysis_response_time.png")
 plt.close()
 
 # Correlation analysis
@@ -130,8 +130,8 @@ sns.heatmap(correlation_matrix, annot=True, fmt='.2f', cmap='coolwarm',
             center=0, square=True, ax=ax, cbar_kws={"shrink": 0.8})
 ax.set_title('Parameter Correlation Matrix', fontsize=14, fontweight='bold')
 plt.tight_layout()
-plt.savefig('analysis_parameter_correlations.png', dpi=150, bbox_inches='tight')
-print("✓ 파라미터 상관관계 플롯 저장: analysis_parameter_correlations.png")
+plt.savefig('figures/analysis_parameter_correlations.png', dpi=150, bbox_inches='tight')
+print("✓ 파라미터 상관관계 플롯 저장: figures/analysis_parameter_correlations.png")
 plt.close()
 
 # Cross-validation analysis
@@ -251,7 +251,7 @@ axes[1].text(0.5, 0.95, f't-test: p={p_value:.4f}',
              bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
 
 plt.tight_layout()
-plt.savefig('analysis_expertise_distribution.png', dpi=150, bbox_inches='tight')
+plt.savefig('figures/analysis_expertise_distribution.png', dpi=150, bbox_inches='tight')
 print("✓ Expertise 분포 플롯 저장: analysis_expertise_distribution.png")
 plt.close()
 

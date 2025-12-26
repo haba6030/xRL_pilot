@@ -122,6 +122,34 @@ plots/
 checkpoints/
 saved_models/
 
+# Phase 2: AIRL Training Data and Models (large files - DO NOT COMMIT)
+data/
+models/
+training_data/
+figures/
+
+# Specifically ignore Phase 2 outputs
+data/training_trajectories/
+data/expert_trajectories/
+models/bc_policies/
+models/ppo_generators/
+models/airl_results/
+models/airl_pure_nn_results/
+
+# Documentation (DO COMMIT - tracked files)
+# docs/
+# progress/
+# archive/
+# These folders contain markdown files that should be tracked
+
+# Experiment logs and tensorboard
+logs/
+runs/
+tensorboard/
+*.log
+wandb/
+mlruns/
+
 # Backup files
 *.bak
 *.backup

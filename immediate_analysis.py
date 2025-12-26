@@ -104,7 +104,7 @@ if depth_file.exists():
                     bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
 
         plt.tight_layout()
-        plt.savefig('immediate_pv_depth_analysis.png', dpi=150, bbox_inches='tight')
+        plt.savefig('figures/immediate_pv_depth_analysis.png', dpi=150, bbox_inches='tight')
         print("\n✓ PV Depth 분석 플롯 저장: immediate_pv_depth_analysis.png")
         plt.close()
 
@@ -254,7 +254,7 @@ ax.legend(fontsize=9)
 ax.grid(alpha=0.3)
 
 plt.tight_layout()
-plt.savefig('immediate_expertise_discrimination.png', dpi=150, bbox_inches='tight')
+plt.savefig('figures/immediate_expertise_discrimination.png', dpi=150, bbox_inches='tight')
 print("\n✓ Expertise Discrimination 플롯 저장: immediate_expertise_discrimination.png")
 plt.close()
 
@@ -384,7 +384,7 @@ ax.legend()
 ax.grid(axis='y', alpha=0.3)
 
 plt.tight_layout()
-plt.savefig('immediate_rt_correlation.png', dpi=150, bbox_inches='tight')
+plt.savefig('figures/immediate_rt_correlation.png', dpi=150, bbox_inches='tight')
 print("\n✓ RT 상관관계 플롯 저장: immediate_rt_correlation.png")
 plt.close()
 

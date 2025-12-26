@@ -123,7 +123,7 @@ if 'Main model' in model_data:
     ax.tick_params(axis='x', rotation=90)
 
 plt.tight_layout()
-plt.savefig('analysis_model_comparison.png', dpi=150, bbox_inches='tight')
+plt.savefig('figures/analysis_model_comparison.png', dpi=150, bbox_inches='tight')
 print("\n✓ 모델 비교 플롯 저장: analysis_model_comparison.png")
 plt.close()
 
@@ -180,7 +180,7 @@ if len(planning_models) > 0:
         ax.grid(axis='y', alpha=0.3)
 
     plt.tight_layout()
-    plt.savefig('analysis_planning_models_parameters.png', dpi=150, bbox_inches='tight')
+    plt.savefig('figures/analysis_planning_models_parameters.png', dpi=150, bbox_inches='tight')
     print("✓ Planning 모델 파라미터 비교 플롯 저장: analysis_planning_models_parameters.png")
     plt.close()
 
@@ -219,7 +219,7 @@ if 'Main model' in model_data and 'Fixed depth' in model_data:
     ax.grid(alpha=0.3)
 
     plt.tight_layout()
-    plt.savefig('analysis_participant_model_comparison.png', dpi=150, bbox_inches='tight')
+    plt.savefig('figures/analysis_participant_model_comparison.png', dpi=150, bbox_inches='tight')
     print("✓ 참가자별 모델 비교 플롯 저장: analysis_participant_model_comparison.png")
     plt.close()
 
