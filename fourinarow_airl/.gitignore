@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+*.egg-info/
+dist/
+build/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Data
+*.pkl
+*.npy
+*.npz
+
+# Figures
+*.png
+*.pdf
+*.jpg
+
+# Deprecated: Heuristic-based approach (backup)
+backup_heuristic_approach/
+
+# Large training data (heuristic-based, deprecated)
+data/training_trajectories/
+data/training_trajectories_beta10/
+data/h_verification_results.pkl
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo

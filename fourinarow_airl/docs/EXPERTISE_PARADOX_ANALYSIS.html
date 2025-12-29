@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>EXPERTISE_PARADOX_ANALYSIS.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
+<h1 id="overall-summary">Overall Summary</h1>
+<h2 id="1-%EC%97%B0%EA%B5%AC-%EB%B0%B0%EA%B2%BD">1. 연구 배경</h2>
+<h3 id="rq3-planning-depth%EA%B0%80-expertise%EB%A5%BC-%EA%B5%AC%EB%B6%84%ED%95%98%EB%8A%94%EA%B0%80">RQ3: Planning Depth가 Expertise를 구분하는가?</h3>
+<p><strong>van Opheusden et al. (2023) 가설</strong>:</p>
+<ul>
+<li>Expert는 더 깊게 계획한다 (higher h)</li>
+<li>Expertise = Planning depth의 함수</li>
+<li>Principal Variation (PV) depth가 Elo와 상관</li>
+</ul>
+<p><strong>우리의 접근</strong>:</p>
+<ul>
+<li>Multi-step IK + Discriminator로 E[h] 추정</li>
+<li>Elo rating (객관적 지표)과 E[h] 상관관계 분석</li>
+<li>Expert vs Novice 비교</li>
+</ul>
+<hr>
+<h2 id="2-%EB%B6%84%EC%84%9D-%ED%8C%8C%EC%9D%B4%ED%94%84%EB%9D%BC%EC%9D%B8">2. 분석 파이프라인</h2>
+<h3 id="phase-0-%EB%8D%B0%EC%9D%B4%ED%84%B0-%EC%A4%80%EB%B9%84">Phase 0: 데이터 준비</h3>
+<p><strong>입력 데이터</strong>:</p>
+<pre class="hljs"><code><div>/xRL_pilot/opendata/raw_data.csv
+- 40 participants
+- 318 human-vs-human games
+- 5,482 moves
+
+/xRL_pilot/data/human_elo_ratings.csv
+- Elo 범위: 1464.6 - 1535.4
+- Expert (n=10): Elo ≥ 1508.8
+- Intermediate (n=20): 1491.2 ≤ Elo &lt; 1508.8
+- Novice (n=10): Elo &lt; 1491.2
+</div></code></pre>
+<hr>
+<h3 id="phase-1-multi-step-ik-data-%EC%83%9D%EC%84%B1">Phase 1: Multi-Step IK Data 생성</h3>
+<p><strong>스크립트</strong>: <code>preprocess_multistep_ik_data.py</code></p>
+<p><strong>목적</strong>: (state_t, state_{t+h}, action_t) 쌍 생성</p>
+<p><strong>방법</strong>:</p>
+<pre class="hljs"><code><div><span class="hljs-keyword">for</span> h <span class="hljs-keyword">in</span> [<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>]:
+    <span class="hljs-keyword">for</span> game <span class="hljs-keyword">in</span> games:
+        <span class="hljs-keyword">for</span> t <span class="hljs-keyword">in</span> range(len(game) - h):
+            state_current = game[t].state
+            state_future = game[t+h].state  <span class="hljs-comment"># h-step 후</span>
+            action_taken = game[t].action
+
+            data_h.append((state_current, state_future, action_taken))
+</div></code></pre>
+<p><strong>출력</strong>:</p>
+<pre class="hljs"><code><div>data/multistep_ik/ik_pairs_h1.pkl: 1502 pairs
+data/multistep_ik/ik_pairs_h2.pkl: 1403 pairs
+data/multistep_ik/ik_pairs_h3.pkl: 1304 pairs
+data/multistep_ik/ik_pairs_h4.pkl: 1205 pairs
+</div></code></pre>
+<hr>
+<h3 id="phase-2-h-specific-models-%ED%95%99%EC%8A%B5">Phase 2: h-Specific Models 학습</h3>
+<p><strong>스크립트</strong>: <code>train_separate_h_models.py</code></p>
+<p><strong>핵심 아이디어</strong>: Separate encoders (Mhammedi joint model 개선)</p>
+<p><strong>방법</strong>:</p>
+<pre class="hljs"><code><div><span class="hljs-comment"># 각 h마다 독립적인 모델</span>
+<span class="hljs-keyword">for</span> h <span class="hljs-keyword">in</span> [<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>]:
+    model_h = LogisticRegression()
+
+    <span class="hljs-comment"># h-specific 데이터만 사용</span>
+    X = [state_current, state_future]  <span class="hljs-comment"># 178-dim (no h_onehot!)</span>
+    y = action
+
+    model_h.fit(X_h, y_h)
+    save(<span class="hljs-string">f'models/separate_h/model_h<span class="hljs-subst">{h}</span>.pkl'</span>)
+</div></code></pre>
+<p><strong>왜 Separate?</strong></p>
+<pre class="hljs"><code><div>Joint model 문제:
+- [state_current, state_future, h_onehot] → action
+- 모델이 state 무시하고 h_onehot만 보는 shortcut 학습
+- h-interference 발생
+
+Separate model 장점:
+- 각 모델이 100% 용량을 해당 h에 집중
+- h를 &quot;체화&quot; (모델 자체가 h를 표현)
+- KL divergence 증가: 0.04 → 0.10 (2.6배 개선)
+</div></code></pre>
+<p><strong>결과</strong>:</p>
+<pre class="hljs"><code><div>model_h1.pkl: 77.1% validation accuracy
+model_h2.pkl: 26.0% validation accuracy
+model_h3.pkl: 18.8% validation accuracy
+model_h4.pkl: 14.9% validation accuracy
+
+→ h가 클수록 정확도 낮음 (예측 어려움, 미래는 불확실)
+→ 하지만 성능(win rate)은 h=4가 가장 높음!
+</div></code></pre>
+<hr>
+<h3 id="phase-3-trajectory-%EC%83%9D%EC%84%B1-rollout-simulation">Phase 3: Trajectory 생성 (Rollout Simulation)</h3>
+<p><strong>스크립트</strong>: <code>generate_trajectories_separate_h.py</code>, <code>generate_h23_trajectories.py</code></p>
+<p><strong>목적</strong>: 각 h 값으로 게임 플레이 시뮬레이션</p>
+<p><strong>핵심 방법</strong>: Rollout-based Inference</p>
+<pre class="hljs"><code><div><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">select_action</span><span class="hljs-params">(env, model_h, h)</span>:</span>
+    legal_actions = env.get_legal_actions()
+    scores = []
+
+    <span class="hljs-keyword">for</span> action <span class="hljs-keyword">in</span> legal_actions:
+        <span class="hljs-comment"># 1. 이 action을 선택</span>
+        sim_env = deepcopy(env)
+        sim_env.step(action)
+
+        <span class="hljs-comment"># 2. 나머지 h-1 수를 "무작위"로 시뮬레이션 ⚠️</span>
+        <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> range(h - <span class="hljs-number">1</span>):
+            legal = sim_env.get_legal_actions()
+            random_action = np.random.choice(legal)  <span class="hljs-comment"># ← 문제!</span>
+            sim_env.step(random_action)
+
+        <span class="hljs-comment"># 3. h-step 후 상태로 점수 계산</span>
+        future_state = sim_env.get_observation()
+        features = [current_state, future_state]
+        score = model_h.predict_proba(features)[action]
+        scores.append(score)
+
+    <span class="hljs-comment"># 4. Softmax로 action 선택</span>
+    probs = softmax(scores)
+    <span class="hljs-keyword">return</span> np.random.choice(legal_actions, p=probs)
+</div></code></pre>
+<p><strong>⚠️ Random Rollout의 문제점</strong>:</p>
+<pre class="hljs"><code><div>Training: 실제 인간의 미래 state 사용
+Inference: 무작위 rollout으로 미래 state 근사
+
+→ Distribution mismatch!
+→ 특히 expert 게임에서 문제 (상대도 expert)
+</div></code></pre>
+<p><strong>출력</strong>:</p>
+<pre class="hljs"><code><div>data/separate_h_trajectories/trajectories_h1.pkl: 100 episodes, 2455 actions
+data/separate_h_trajectories/trajectories_h2.pkl: 100 episodes, 2325 actions
+data/separate_h_trajectories/trajectories_h3.pkl: 100 episodes, 2325 actions
+data/separate_h_trajectories/trajectories_h4.pkl: 100 episodes, 2258 actions
+</div></code></pre>
+<hr>
+<h3 id="phase-4-multi-class-discriminator-%ED%95%99%EC%8A%B5">Phase 4: Multi-Class Discriminator 학습</h3>
+<p><strong>스크립트</strong>: <code>train_multiclass_discriminator.py</code></p>
+<p><strong>목적</strong>: (state, action) → P(h=1,2,3,4) 분류</p>
+<p><strong>Architecture</strong>:</p>
+<pre class="hljs"><code><div>Input: [state(89-dim), action_onehot(36-dim)] → 125-dim
+Hidden: [256, 128, 64] (ReLU + BatchNorm + Dropout)
+Output: 4 classes (h=1,2,3,4) (softmax)
+
+Loss: CrossEntropyLoss
+Optimizer: Adam(lr=0.001, weight_decay=1e-4)
+Training: 100 epochs, batch_size=64
+</div></code></pre>
+<p><strong>데이터</strong>:</p>
+<pre class="hljs"><code><div>Training: 7490 (state, action, h) pairs
+Test: 1873 pairs
+</div></code></pre>
+<p><strong>성능</strong>:</p>
+<pre class="hljs"><code><div>Test Accuracy: 93.8%
+Chance: 25%
+
+Per-class F1:
+- h=1: 0.950 (excellent)
+- h=2: 0.925 (good)
+- h=3: 0.909 (good)
+- h=4: 0.923 (excellent)
+
+Confusion Matrix: 거의 완벽한 대각선
+</div></code></pre>
+<p><strong>해석</strong>: Planning depth는 <strong>highly identifiable</strong> from behavior!</p>
+<hr>
+<h3 id="phase-5-human-eh-%EC%B6%94%EC%A0%95">Phase 5: Human E[h] 추정</h3>
+<p><strong>스크립트</strong>: <code>estimate_player_h_multiclass_fixed.py</code></p>
+<p><strong>🚨 Critical Bug Fix</strong>: Human-vs-human 게임 처리</p>
+<h4 id="51-%EC%9B%90%EB%9E%98-%EB%B2%84%EC%A0%84%EC%9D%98-%EB%AC%B8%EC%A0%9C-estimateplayerhmulticlasspy">5.1. 원래 버전의 문제 (<code>estimate_player_h_multiclass.py</code>)</h4>
+<p><strong>잘못된 코드</strong>:</p>
+<pre class="hljs"><code><div><span class="hljs-comment"># 게임 단위로 분석</span>
+<span class="hljs-keyword">for</span> game <span class="hljs-keyword">in</span> games:
+    game_moves = game[<span class="hljs-string">'moves'</span>]  <span class="hljs-comment"># 양쪽 참가자의 모든 수</span>
+
+    <span class="hljs-comment"># 게임 전체 분석 (두 사람의 수가 섞임!)</span>
+    h_probs, h_pred, h_expected = estimate_h_for_game(game_moves)
+
+    <span class="hljs-comment"># 양쪽 참가자에게 같은 값 할당 ❌</span>
+    participants = set(move[<span class="hljs-string">'participant'</span>] <span class="hljs-keyword">for</span> move <span class="hljs-keyword">in</span> game_moves)
+    <span class="hljs-keyword">for</span> participant <span class="hljs-keyword">in</span> participants:  <span class="hljs-comment"># 2명</span>
+        player_data[participant][<span class="hljs-string">'h_expected'</span>].append(h_expected)
+</div></code></pre>
+<p><strong>문제점</strong>:</p>
+<pre class="hljs"><code><div>Human-vs-human 게임 = 2명 참가
+게임 전체 수 분석 = 두 사람의 수가 섞임
+→ 두 참가자가 동일한 E[h] 값을 가짐!
+
+결과:
+Participant 16 (Expert, Elo 1535): E[h] = 2.823
+Participant 15 (Novice, Elo 1465): E[h] = 2.823 ← 동일!
+
+→ 개인차가 완전히 사라짐
+→ Elo vs E[h] 상관관계 = 0.000
+</div></code></pre>
+<h4 id="52-%EC%88%98%EC%A0%95%EB%90%9C-%EB%B2%84%EC%A0%84-estimateplayerhmulticlassfixedpy">5.2. 수정된 버전 (<code>estimate_player_h_multiclass_fixed.py</code>)</h4>
+<p><strong>올바른 코드</strong>:</p>
+<pre class="hljs"><code><div><span class="hljs-comment"># 참가자별로 분석</span>
+<span class="hljs-keyword">for</span> participant <span class="hljs-keyword">in</span> all_participants:
+    <span class="hljs-comment"># 이 참가자가 둔 수만 추출</span>
+    participant_moves = df[df[<span class="hljs-string">'participant'</span>] == participant]
+
+    <span class="hljs-comment"># 이 참가자의 수만 분석</span>
+    observations = []
+    actions = []
+    <span class="hljs-keyword">for</span> move <span class="hljs-keyword">in</span> participant_moves:
+        obs = parse_board_state(move[<span class="hljs-string">'black_pieces'</span>], move[<span class="hljs-string">'white_pieces'</span>])
+        action = move[<span class="hljs-string">'move'</span>]
+        observations.append(obs)
+        actions.append(action)
+
+    <span class="hljs-comment"># Discriminator로 E[h] 추정</span>
+    probs = discriminator.predict(observations, actions)
+    h_probs = np.mean(probs, axis=<span class="hljs-number">0</span>)
+    h_expected = np.sum(h_probs * [<span class="hljs-number">1</span>,<span class="hljs-number">2</span>,<span class="hljs-number">3</span>,<span class="hljs-number">4</span>])
+
+    results[participant] = h_expected
+</div></code></pre>
+<p><strong>수정 후 결과</strong>:</p>
+<pre class="hljs"><code><div>Participant 16 (Expert, Elo 1535): E[h] = 2.798
+Participant 15 (Novice, Elo 1465): E[h] = 2.808
+
+→ 이제 각자 고유한 값!
+→ 개인차 복원
+</div></code></pre>
+<hr>
+<h3 id="phase-6-elo-vs-eh-%EB%B6%84%EC%84%9D">Phase 6: Elo vs E[h] 분석</h3>
+<p><strong>스크립트</strong>: <code>analyze_elo_vs_h.py</code></p>
+<p><strong>방법</strong>:</p>
+<pre class="hljs"><code><div><span class="hljs-comment"># 1. Elo rating 로드</span>
+elo_df = pd.read_csv(<span class="hljs-string">'data/human_elo_ratings.csv'</span>)
+
+<span class="hljs-comment"># 2. E[h] 추정값 로드 (수정된 버전)</span>
+h_df = pd.read_csv(<span class="hljs-string">'human_h_multiclass_estimates_fixed.csv'</span>)
+
+<span class="hljs-comment"># 3. 병합</span>
+merged_df = elo_df.merge(h_df, on=<span class="hljs-string">'participant'</span>)
+
+<span class="hljs-comment"># 4. 상관관계 분석</span>
+r_spearman, p_value = spearmanr(merged_df[<span class="hljs-string">'elo'</span>], merged_df[<span class="hljs-string">'h_expected_mean'</span>])
+
+<span class="hljs-comment"># 5. 그룹 비교</span>
+expert = merged_df[merged_df[<span class="hljs-string">'expertise'</span>] == <span class="hljs-string">'expert'</span>]
+intermediate = merged_df[merged_df[<span class="hljs-string">'expertise'</span>] == <span class="hljs-string">'intermediate'</span>]
+novice = merged_df[merged_df[<span class="hljs-string">'expertise'</span>] == <span class="hljs-string">'novice'</span>]
+
+f_stat, p_anova = f_oneway(expert[<span class="hljs-string">'h_expected_mean'</span>],
+                            intermediate[<span class="hljs-string">'h_expected_mean'</span>],
+                            novice[<span class="hljs-string">'h_expected_mean'</span>])
+</div></code></pre>
+<hr>
+<h2 id="3-%EC%A3%BC%EC%9A%94-%EA%B2%B0%EA%B3%BC">3. 주요 결과</h2>
+<h3 id="31-overall-eh-%EB%B6%84%ED%8F%AC">3.1. Overall E[h] 분포</h3>
+<p><strong>전체 통계</strong> (N=40):</p>
+<pre class="hljs"><code><div>E[h] mean: 2.844 ± 0.085
+E[h] range: [2.562, 3.009]
+
+Mode 분류:
+- h=1: 0명 (0%)
+- h=2: 0명 (0%)
+- h=3: 3명 (7.5%)
+- h=4: 37명 (92.5%)
+
+평균 확률 분포:
+P(h=1) = 0.135
+P(h=2) = 0.227
+P(h=3) = 0.297
+P(h=4) = 0.341
+</div></code></pre>
+<p><strong>해석</strong>:</p>
+<ul>
+<li>대부분 참가자가 h=4로 분류되지만</li>
+<li>E[h] &lt; 3.0 (진짜 h=4는 아님)</li>
+<li>Mixed strategy 사용 (context-dependent planning)</li>
+</ul>
+<hr>
+<h3 id="32-elo-vs-eh-%EC%83%81%EA%B4%80%EA%B4%80%EA%B3%84">3.2. Elo vs E[h] 상관관계</h3>
+<p><strong>Correlation Analysis</strong>:</p>
+<pre class="hljs"><code><div>Pearson r:  -0.142, p = 0.383 (ns)
+Spearman r: -0.117, p = 0.471 (ns)
+
+Effect size: small (|r| = 0.117)
+</div></code></pre>
+<p><strong>결론</strong>: Elo rating과 E[h] 사이에 <strong>유의미한 상관관계 없음</strong></p>
+<hr>
+<h3 id="33-expertise-groups-%EB%B9%84%EA%B5%90">3.3. Expertise Groups 비교</h3>
+<p><strong>Group Statistics</strong>:</p>
+<pre class="hljs"><code><div>Expert (n=10):       E[h] = 2.804 ± 0.097
+Intermediate (n=20): E[h] = 2.859 ± 0.067
+Novice (n=10):       E[h] = 2.853 ± 0.090
+
+ANOVA: F = 1.47, p = 0.243 (ns)
+</div></code></pre>
+<p><strong>Pairwise t-tests</strong>:</p>
+<pre class="hljs"><code><div>Expert vs Novice:       t = -1.12, p = 0.279, d = -0.527
+Expert vs Intermediate: t = -1.74, p = 0.094, d = -0.654 ⚠️
+Intermediate vs Novice: t =  0.18, p = 0.862, d =  0.067
+</div></code></pre>
+<p><strong>🚨 핵심 발견</strong>:</p>
+<ul>
+<li>Expert의 E[h]가 가장 <strong>낮음</strong>!</li>
+<li>Expert vs Intermediate: d = -0.654 (medium effect, marginally significant)</li>
+<li>역U자형 패턴 (Intermediate가 peak)</li>
+</ul>
+<hr>
+<h3 id="34-win-rate-vs-eh">3.4. Win Rate vs E[h]</h3>
+<p><strong>놀라운 발견</strong>:</p>
+<pre class="hljs"><code><div>Win Rate vs E[h]: r = -0.426, p = 0.006 ✅
+Elo vs E[h]:      r = -0.117, p = 0.471 ❌
+
+→ Win rate와는 강한 음의 상관관계!
+</div></code></pre>
+<p><strong>해석</strong>:</p>
+<ul>
+<li>Win rate가 <strong>높을수록</strong> E[h]가 <strong>낮다</strong></li>
+<li>Elo는 상관없지만 Win rate와는 상관있음</li>
+<li>Elo ≠ Win rate (Elo가 더 안정적 지표)</li>
+</ul>
+<p><strong>Elo vs Win Rate</strong>:</p>
+<pre class="hljs"><code><div>r = 0.600, p &lt; 0.001
+→ 둘은 관련있지만 다른 정보 포함
+</div></code></pre>
+<hr>
+<h3 id="35-binary-split-high-vs-low-elo">3.5. Binary Split (High vs Low Elo)</h3>
+<p><strong>Median split</strong> (Elo = 1500):</p>
+<pre class="hljs"><code><div>High-Elo (n=24): E[h] = 2.844 ± 0.088
+Low-Elo (n=16):  E[h] = 2.843 ± 0.084
+
+t-test: t = 0.05, p = 0.960
+Mean difference = 0.001
+Cohen's d = 0.017
+</div></code></pre>
+<p><strong>결론</strong>: 거의 <strong>차이 없음</strong> (완전히 동일)</p>
+<hr>
+<h2 id="4-expertise-paradox-%ED%95%B4%EC%84%9D">4. Expertise Paradox 해석</h2>
+<h3 id="41-%EC%99%9C-%EC%97%AD%EC%84%A4%EC%9D%B8%EA%B0%80">4.1. 왜 역설인가?</h3>
+<p><strong>예상</strong> (van Opheusden 가설):</p>
+<pre class="hljs"><code><div>Expertise ↑ → Planning depth ↑
+Expert는 더 멀리 내다본다 (higher h)
+</div></code></pre>
+<p><strong>실제</strong> (우리 결과):</p>
+<pre class="hljs"><code><div>Expertise ↑ → Planning depth ↓ (약한 경향)
+Expert:       E[h] = 2.804
+Intermediate: E[h] = 2.859
+Novice:       E[h] = 2.853
+</div></code></pre>
+<p><strong>패턴</strong>: 역U자형 또는 음의 경향</p>
+<hr>
+<h3 id="42-%EA%B0%80%EB%8A%A5%ED%95%9C-%EC%84%A4%EB%AA%85">4.2. 가능한 설명</h3>
+<h4 id="%EC%84%A4%EB%AA%85-1-efficiency-hypothesis-%EC%A7%84%EC%A7%9C-%ED%8C%A8%ED%84%B4-%E2%AD%90%E2%AD%90%E2%AD%90%E2%AD%90%E2%AD%90">설명 1: Efficiency Hypothesis (진짜 패턴) ⭐⭐⭐⭐⭐</h4>
+<p><strong>가설</strong>: Expert는 오히려 <strong>적게</strong> 계획한다</p>
+<p><strong>논리</strong>:</p>
+<pre class="hljs"><code><div>Novice:
+- Heuristic/pattern 부족
+- 깊게 생각하지만 방향 틀림
+- 비효율적 탐색 (h↑, performance↓)
+
+Expert:
+- 강력한 heuristic/pattern recognition
+- 직관적으로 좋은 수 파악
+- 짧게 계획해도 정확 (h↓, performance↑)
+
+→ &quot;Thinking Fast&quot; (Kahneman)
+→ System 1 (intuitive) &gt; System 2 (deliberative)
+</div></code></pre>
+<p><strong>증거</strong>:</p>
+<pre class="hljs"><code><div>Chess masters (de Groot, 1965):
+- 좋은 수를 빠르게 떠올림 (5초)
+- Novice는 오래 고민 (20분+)
+- &quot;Expert intuition&quot; = chunk recognition
+
+Go experts (Lee Sedol):
+- &quot;느낌&quot;으로 수를 둠
+- 계산은 확인용
+
+van Opheusden PV depth:
+- PV depth ≠ actual planning depth
+- PV depth = search trace length
+- Expert는 pruning을 잘함 → 짧은 trace
+</div></code></pre>
+<p><strong>함의</strong>:</p>
+<pre class="hljs"><code><div>Planning depth ≠ Skill
+Skill = Efficient planning (quality &gt; quantity)
+
+Expert: Low h + high quality = high performance
+Novice: High h + low quality = low performance
+</div></code></pre>
+<hr>
+<h4 id="%EC%84%A4%EB%AA%85-2-random-rollout-artifact-%E2%AD%90%E2%AD%90%E2%AD%90%E2%AD%90%E2%AD%90">설명 2: Random Rollout Artifact ⭐⭐⭐⭐⭐</h4>
+<p><strong>가설</strong>: Rollout 방법이 expert의 h를 underestimate</p>
+<p><strong>논리</strong>:</p>
+<pre class="hljs"><code><div><span class="hljs-comment"># 현재 rollout (문제)</span>
+<span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> range(h - <span class="hljs-number">1</span>):
+    random_action = np.random.choice(legal_actions)  <span class="hljs-comment"># Uniform!</span>
+    sim_env.step(random_action)
+
+문제점:
+<span class="hljs-number">1.</span> Expert 게임: 상대도 expert (좋은 수를 둠)
+<span class="hljs-number">2.</span> Random rollout: 좋은 수/나쁜 수 동일 확률
+<span class="hljs-number">3.</span> Distribution mismatch!
+
+Expert의 실제 미래:
+- 상대가 좋은 수를 둠
+- 위협적인 상황 많음
+- h를 크게 해야 대응 가능
+
+Random rollout 미래:
+- 상대가 무작위
+- 위협 적음
+- h 작아도 충분
+
+→ Expert가 낮은 h로 분류됨!
+</div></code></pre>
+<p><strong>예측</strong>:</p>
+<pre class="hljs"><code><div>Random rollout:
+Expert E[h] = 2.80
+Novice E[h] = 2.85
+
+Opponent model rollout:
+Expert E[h] = 2.95 (증가!)
+Novice E[h] = 2.85 (변화 적음)
+
+→ 역설 해소 가능
+</div></code></pre>
+<hr>
+<h4 id="%EC%84%A4%EB%AA%85-3-discriminator-calibration-issue-%E2%AD%90%E2%AD%90%E2%AD%90">설명 3: Discriminator Calibration Issue ⭐⭐⭐</h4>
+<p><strong>가설</strong>: Discriminator가 expert 행동을 misclassify</p>
+<p><strong>논리</strong>:</p>
+<pre class="hljs"><code><div>Training data:
+- h=1,2,3,4 균등 분포 (각 25%)
+- Random rollout으로 생성
+- Synthetic policy
+
+Real expert:
+- Context-dependent planning
+- h=2,3을 전략적으로 사용
+- Adaptive policy
+
+Discriminator:
+- Fixed h를 가정
+- Context 무시
+- Expert의 adaptive h를 &quot;낮은 h&quot;로 오해
+</div></code></pre>
+<p><strong>증거</strong>:</p>
+<pre class="hljs"><code><div>Expert 확률 분포:
+P(h=1) = 0.14
+P(h=2) = 0.23
+P(h=3) = 0.30
+P(h=4) = 0.33
+
+→ 골고루 분산 (adaptive!)
+→ 하지만 E[h] = 2.80 (낮음)
+</div></code></pre>
+<hr>
+<h4 id="%EC%84%A4%EB%AA%85-4-sample-homogeneity-ceiling-effect-%E2%AD%90%E2%AD%90">설명 4: Sample Homogeneity (Ceiling Effect) ⭐⭐</h4>
+<p><strong>가설</strong>: 모든 참가자가 skilled → 차이 작음</p>
+<p><strong>논리</strong>:</p>
+<pre class="hljs"><code><div>van Opheusden 데이터:
+- 대학생, 성인
+- 100게임 완료 조건
+- Selection bias (skilled만 참여)
+
+결과:
+Expert Elo: 1508-1535 (range = 27)
+Novice Elo: 1465-1491 (range = 26)
+전체 range: 71점 (매우 좁음!)
+
+E[h] 범위: 2.56-3.01 (range = 0.45)
+→ 이론적 범위 1-4의 11%만 사용
+→ Ceiling effect
+</div></code></pre>
+<p><strong>함의</strong>:</p>
+<ul>
+<li>진짜 Novice 없음 (모두 intermediate 이상)</li>
+<li>차이가 있어도 탐지 어려움</li>
+<li>Power 부족</li>
+</ul>
+<hr>
+<h4 id="%EC%84%A4%EB%AA%85-5-win-rate-%E2%89%A0-elo-%E2%AD%90%E2%AD%90%E2%AD%90">설명 5: Win Rate ≠ Elo ⭐⭐⭐</h4>
+<p><strong>가설</strong>: Win rate는 noisy measure</p>
+<p><strong>논리</strong>:</p>
+<pre class="hljs"><code><div>Win rate 계산:
+- 4-in-a-row 승리 판정 간단
+- Draw가 많음 (83.6%)
+- 게임 수 적음 (~16 games/person)
+- Variance 큼
+
+Elo rating:
+- Bayesian inference
+- 모든 게임 누적
+- 더 안정적
+- 하지만 E[h]와 무상관
+
+역설:
+Win rate ↔ E[h]: r = -0.426 ✅
+Elo ↔ E[h]:      r = -0.117 ❌
+
+→ Win rate에만 있는 noise가 E[h]와 correlate?
+</div></code></pre>
+<hr>
+<h3 id="43-%EA%B0%80%EC%9E%A5-%EA%B0%80%EB%8A%A5%EC%84%B1-%EB%86%92%EC%9D%80-%EC%84%A4%EB%AA%85">4.3. 가장 가능성 높은 설명</h3>
+<p><strong>복합적 원인</strong>:</p>
+<p><strong>1순위: Random Rollout Artifact (설명 2)</strong></p>
+<pre class="hljs"><code><div>가장 직접적인 원인
+Testable (opponent model 구현하면 검증)
+예측 가능 (expert h가 증가할 것)
+</div></code></pre>
+<p><strong>2순위: Efficiency Hypothesis (설명 1)</strong></p>
+<pre class="hljs"><code><div>이론적으로 타당
+Chess/Go 증거 있음
+하지만 van Opheusden과 모순
+</div></code></pre>
+<p><strong>3순위: Discriminator Calibration (설명 3)</strong></p>
+<pre class="hljs"><code><div>가능성 있음
+Adaptive h를 낮은 h로 오해
+</div></code></pre>
+<p><strong>가능성 낮음</strong>: Sample Homogeneity (설명 4), Win Rate Noise (설명 5)</p>
+<hr>
+<h2 id="5-%EA%B2%80%EC%A6%9D-%EA%B3%84%ED%9A%8D">5. 검증 계획</h2>
+<h3 id="51-opponent-model-rollout-%EC%B5%9C%EC%9A%B0%EC%84%A0-%F0%9F%94%A5">5.1. Opponent Model Rollout (최우선) 🔥</h3>
+<p><strong>목적</strong>: Random rollout artifact 검증</p>
+<p><strong>방법</strong>:</p>
+<pre class="hljs"><code><div><span class="hljs-comment"># Opponent model 학습</span>
+opponent_model = LogisticRegression()
+opponent_moves = extract_all_opponent_moves(games)
+opponent_model.fit(states, actions)
+
+<span class="hljs-comment"># Rollout with opponent model</span>
+<span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> range(h - <span class="hljs-number">1</span>):
+    legal = sim_env.get_legal_actions()
+    state = sim_env.get_observation()
+
+    <span class="hljs-comment"># 확률분포로 샘플링</span>
+    probs = opponent_model.predict_proba(state)[legal]
+    probs /= probs.sum()
+    action = np.random.choice(legal, p=probs)
+
+    sim_env.step(action)
+</div></code></pre>
+<p><strong>예측</strong>:</p>
+<pre class="hljs"><code><div>H0: Expert E[h] 증가
+H1: Expert E[h] 변화 없음
+
+만약 H0:
+→ Random rollout이 원인 (artifact)
+→ 진짜 expert는 높은 h
+
+만약 H1:
+→ Efficiency hypothesis 지지
+→ Expert는 진짜 낮은 h
+</div></code></pre>
+<hr>
+<h3 id="52-rollout-method-%EB%B9%84%EA%B5%90-%EC%8B%A4%ED%97%98">5.2. Rollout Method 비교 실험</h3>
+<p><strong>세 가지 방법 비교</strong>:</p>
+<ol>
+<li><strong>Random</strong>: 현재 방법 (uniform)</li>
+<li><strong>Opponent Model</strong>: 학습된 상대방 정책</li>
+<li><strong>Heuristic</strong>: van Opheusden heuristic 사용</li>
+</ol>
+<p><strong>절차</strong>:</p>
+<pre class="hljs"><code><div>각 방법으로:
+1. Trajectory 생성 (100 episodes × 4 h values)
+2. Discriminator 학습
+3. Human E[h] 추정
+4. Elo vs E[h] 상관관계 계산
+
+비교:
+- 어느 방법이 가장 높은 상관관계?
+- Expert E[h] 값 변화?
+</div></code></pre>
+<p><strong>기대</strong>:</p>
+<pre class="hljs"><code><div>Random:   r = -0.12 (현재)
+Opponent: r = +0.30 (예상)
+Heuristic: r = +0.20 (예상)
+
+→ 방법론적 개선!
+</div></code></pre>
+<hr>
+<h3 id="53-external-validation">5.3. External Validation</h3>
+<p><strong>다른 데이터셋</strong>:</p>
+<ul>
+<li>Chess (Lichess database)</li>
+<li>Go (KGS server data)</li>
+<li>Economic games (cooperation tasks)</li>
+</ul>
+<p><strong>예측</strong>:</p>
+<pre class="hljs"><code><div>만약 Efficiency hypothesis:
+→ 모든 도메인에서 expert &lt; novice
+
+만약 Artifact:
+→ Rollout 방법에 따라 달라짐
+</div></code></pre>
+<hr>
+<h2 id="6-%EB%85%BC%EB%AC%B8-%EC%9E%91%EC%84%B1%EC%9D%84-%EC%9C%84%ED%95%9C-%ED%95%B5%EC%8B%AC-%ED%8F%AC%EC%9D%B8%ED%8A%B8">6. 논문 작성을 위한 핵심 포인트</h2>
+<h3 id="61-introduction">6.1. Introduction</h3>
+<p><strong>배경</strong>:</p>
+<pre class="hljs"><code><div>- IRL의 planning confounder 문제 (Yao et al., 2024)
+- Expertise와 planning depth 관계 (van Opheusden et al., 2023)
+- 하지만 planning depth를 직접 측정하기 어려움
+</div></code></pre>
+<p><strong>우리 접근</strong>:</p>
+<pre class="hljs"><code><div>- Multi-step IK + Discriminator로 h 추정
+- Behavior-based inference (no assumptions)
+- Elo rating (objective measure)과 비교
+</div></code></pre>
+<hr>
+<h3 id="62-methods">6.2. Methods</h3>
+<p><strong>핵심 기여</strong>:</p>
+<ol>
+<li><strong>Separate encoders</strong>: h-interference 제거</li>
+<li><strong>Rollout-based inference</strong>: Training-inference match</li>
+<li><strong>Multi-class discriminator</strong>: Binary보다 정확 (93.8% acc)</li>
+<li><strong>Player-specific analysis</strong>: Human-vs-human 게임 올바른 처리</li>
+</ol>
+<hr>
+<h3 id="63-results">6.3. Results</h3>
+<p><strong>예상치 못한 발견</strong>:</p>
+<pre class="hljs"><code><div>RQ3: Does planning depth discriminate expertise?
+Answer: NO - 오히려 음의 경향
+
+Expert:       E[h] = 2.804
+Intermediate: E[h] = 2.859
+Novice:       E[h] = 2.853
+
+Elo vs E[h]: r = -0.12, p = 0.47 (ns)
+Win rate vs E[h]: r = -0.43, p = 0.006 ✅
+</div></code></pre>
+<hr>
+<h3 id="64-discussion">6.4. Discussion</h3>
+<p><strong>두 가지 해석</strong>:</p>
+<p><strong>해석 A: Methodological Artifact</strong></p>
+<pre class="hljs"><code><div>Random rollout이 문제
+Expert 게임의 상대방 행동 mismatch
+→ Opponent model로 해결 가능
+→ Null result (방법론적 문제)
+</div></code></pre>
+<p><strong>해석 B: Genuine Pattern (Efficiency Hypothesis)</strong></p>
+<pre class="hljs"><code><div>Expert는 효율적으로 계획
+Intuition &gt; Deliberation
+Quality &gt; Quantity
+→ Novel finding (새로운 발견)
+</div></code></pre>
+<p><strong>검증</strong>:</p>
+<pre class="hljs"><code><div>Opponent model rollout 구현
+→ Expert E[h] 증가하면 A
+→ 변화 없으면 B
+</div></code></pre>
+<hr>
+<h3 id="65-implications">6.5. Implications</h3>
+<p><strong>만약 해석 A (Artifact)</strong>:</p>
+<pre class="hljs"><code><div>- Rollout 방법이 critical
+- 실제 상대방 행동 모델링 필요
+- Multi-step IK 개선 방향 제시
+</div></code></pre>
+<p><strong>만약 해석 B (Efficiency)</strong>:</p>
+<pre class="hljs"><code><div>- Planning depth ≠ Expertise
+- Expertise = Efficient planning
+- van Opheusden PV depth 재해석 필요
+- Chess/Go 연구와 일치
+</div></code></pre>
+<p><strong>공통</strong>:</p>
+<pre class="hljs"><code><div>- Planning은 identifiable (93.8% acc)
+- Mixed strategy 사용 (adaptive h)
+- Individual differences exist
+</div></code></pre>
+<hr>
+<h2 id="7-%EB%8B%A4%EC%9D%8C-%EB%8B%A8%EA%B3%84-%EC%9A%B0%EC%84%A0%EC%88%9C%EC%9C%84">7. 다음 단계 (우선순위)</h2>
+<h3 id="%F0%9F%94%A5-priority-1-opponent-model-rollout">🔥 Priority 1: Opponent Model Rollout</h3>
+<p><strong>Task</strong>: <code>implement_opponent_model_rollout.py</code></p>
+<p><strong>목표</strong>:</p>
+<ol>
+<li>상대방 정책 학습</li>
+<li>Trajectory 재생성</li>
+<li>E[h] 재추정</li>
+<li>Elo vs E[h] 재분석</li>
+</ol>
+<p><strong>예상 작업 시간</strong>: 2-3시간</p>
+<p><strong>기대</strong>:</p>
+<ul>
+<li>Expert E[h] 증가</li>
+<li>Elo vs E[h] 상관관계 positive</li>
+<li>Expertise paradox 해소</li>
+</ul>
+<hr>
+<h3 id="priority-2-rollout-method-comparison">Priority 2: Rollout Method Comparison</h3>
+<p><strong>세 가지 방법 체계적 비교</strong>:</p>
+<ul>
+<li>Random (baseline)</li>
+<li>Opponent model (proposed)</li>
+<li>Heuristic-guided (alternative)</li>
+</ul>
+<p><strong>분석</strong>:</p>
+<ul>
+<li>Discriminator accuracy</li>
+<li>E[h] 분포</li>
+<li>Elo correlation</li>
+<li>Expert vs Novice difference</li>
+</ul>
+<hr>
+<h3 id="priority-3-sensitivity-analysis">Priority 3: Sensitivity Analysis</h3>
+<p><strong>Robustness checks</strong>:</p>
+<ul>
+<li>Sample size 영향 (bootstrap)</li>
+<li>Discriminator architecture</li>
+<li>Training data size</li>
+<li>h 범위 (h=1-5 vs h=1-4)</li>
+</ul>
+<hr>
+<h2 id="8-%EA%B8%B0%EC%88%A0%EC%A0%81-%EC%84%B8%EB%B6%80%EC%82%AC%ED%95%AD">8. 기술적 세부사항</h2>
+<h3 id="81-bug-fix-%EC%9A%94%EC%95%BD">8.1. Bug Fix 요약</h3>
+<p><strong>문제</strong>: Human-vs-human 게임에서 두 참가자가 같은 E[h] 값</p>
+<p><strong>원인</strong>: 게임 전체 수를 분석 → 두 사람 수 섞임</p>
+<p><strong>해결</strong>: 참가자별로 분리</p>
+<pre class="hljs"><code><div><span class="hljs-comment"># Before (wrong)</span>
+<span class="hljs-keyword">for</span> game <span class="hljs-keyword">in</span> games:
+    all_moves = game[<span class="hljs-string">'moves'</span>]  <span class="hljs-comment"># 양쪽 수</span>
+    h = estimate(all_moves)
+    <span class="hljs-keyword">for</span> participant <span class="hljs-keyword">in</span> participants:  <span class="hljs-comment"># 2명</span>
+        results[participant] = h  <span class="hljs-comment"># 같은 값!</span>
+
+<span class="hljs-comment"># After (correct)</span>
+<span class="hljs-keyword">for</span> participant <span class="hljs-keyword">in</span> all_participants:
+    participant_moves = df[df[<span class="hljs-string">'participant'</span>] == participant]
+    h = estimate(participant_moves)  <span class="hljs-comment"># 각자 분석</span>
+    results[participant] = h
+</div></code></pre>
+<p><strong>영향</strong>:</p>
+<ul>
+<li>Before: r(Elo, E[h]) = 0.000</li>
+<li>After: r(Elo, E[h]) = -0.117</li>
+<li>Individual variance 복원</li>
+</ul>
+<hr>
+<h3 id="82-%EB%8D%B0%EC%9D%B4%ED%84%B0-%ED%8C%8C%EC%9D%BC">8.2. 데이터 파일</h3>
+<p><strong>입력</strong>:</p>
+<pre class="hljs"><code><div>/xRL_pilot/opendata/raw_data.csv
+/xRL_pilot/data/human_elo_ratings.csv
+models/multiclass_discriminator.pt
+</div></code></pre>
+<p><strong>중간 결과</strong>:</p>
+<pre class="hljs"><code><div>human_h_multiclass_estimates.csv (wrong - deprecated)
+human_h_multiclass_estimates_fixed.csv (correct)
+</div></code></pre>
+<p><strong>최종 분석</strong>:</p>
+<pre class="hljs"><code><div>results/elo_vs_h_analysis.csv
+figures/elo_vs_h_analysis.png
+figures/human_h_multiclass_results_fixed.png
+</div></code></pre>
+<hr>
+<h3 id="83-%ED%86%B5%EA%B3%84-%EA%B2%80%EC%A0%95%EB%A0%A5">8.3. 통계 검정력</h3>
+<p><strong>현재 샘플</strong>:</p>
+<pre class="hljs"><code><div>N = 40
+Expert: 10
+Intermediate: 20
+Novice: 10
+
+Effect size (Expert vs Intermediate): d = -0.654
+Power (two-tailed t-test, α=0.05): ~40%
+→ Underpowered!
+
+필요 샘플 (power = 0.80):
+→ ~40 per group (총 120명)
+</div></code></pre>
+<hr>
+<h2 id="9-%EC%9A%94%EC%95%BD">9. 요약</h2>
+<h3 id="%ED%95%B5%EC%8B%AC-%EB%A9%94%EC%8B%9C%EC%A7%80">핵심 메시지</h3>
+<p><strong>발견</strong>:</p>
+<pre class="hljs"><code><div>✅ Planning depth is identifiable (93.8% accuracy)
+✅ Humans use mixed strategies (E[h]=2.84, not pure h=4)
+❌ Expertise does NOT increase planning depth
+🚨 Expert have LOWER E[h] than intermediate (paradox!)
+</div></code></pre>
+<p><strong>가능한 원인</strong>:</p>
+<pre class="hljs"><code><div>1. Random rollout artifact (testable)
+2. Expert efficiency (genuine pattern)
+3. Discriminator calibration issue
+</div></code></pre>
+<p><strong>다음 단계</strong>:</p>
+<pre class="hljs"><code><div>1. Opponent model rollout 구현 (critical!)
+2. Rollout method 비교
+3. External validation
+</div></code></pre>
+<p><strong>논문 방향</strong>:</p>
+<pre class="hljs"><code><div>Option A: Methodological paper
+- &quot;Rollout method matters for planning depth inference&quot;
+- Null result → 방법론적 개선
+
+Option B: Substantive finding
+- &quot;Expert efficiency: Less planning, better performance&quot;
+- Positive result → 새로운 이론
+</div></code></pre>
+<hr>
+<p><strong>Last Updated</strong>: 2025-12-29
+<strong>Status</strong>: Paradox discovered, opponent model next
+<strong>For</strong>: Lab discussion, paper draft</p>
+<hr>
+<h2 id="references">References</h2>
+<p><strong>Key Papers</strong>:</p>
+<ul>
+<li>van Opheusden et al. (2023). <em>Expertise increases planning depth in human gameplay.</em> Nature.</li>
+<li>Mhammedi et al. (2023). <em>Reinforcement learning from passive data via latent intentions.</em> NeurIPS.</li>
+<li>Yao et al. (2024). <em>Inverse reinforcement learning with the average reward MDP.</em></li>
+<li>de Groot (1965). <em>Thought and choice in chess.</em></li>
+<li>Kahneman (2011). <em>Thinking, Fast and Slow.</em></li>
+</ul>
+
+</body>
+</html>

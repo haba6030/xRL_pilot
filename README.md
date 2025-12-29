@@ -5,172 +5,227 @@
 [![Python](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
+**Status**: Phase 0 (Feasibility Study) - In Progress
+**Last Updated**: 2025-12-26
+
 ---
 
-## 🎯 Research Goals
+## 🎯 Research Questions
 
-This project investigates whether **planning depth** can be explicitly modeled as an inferable parameter in IRL/AIRL, improving:
+This project is a **feasibility study** for applying Planning-Aware AIRL to behavioral data. We test the approach on 4-in-a-row (van Opheusden et al., 2023) before applying to pedestrian crossing task.
 
-1. **Expertise discrimination**: Can planning depth distinguish experts from novices?
-2. **Reward identifiability**: Does modeling planning improve IRL interpretability?
-3. **Clinical prediction**: Can planning mechanisms explain clinical traits (e.g., anxiety)?
-4. **Neural correlates**: Do planning parameters map to fMRI activity patterns?
+### Primary Research Questions
 
-Building on:
-- **van Opheusden et al. (2023)**: Expertise increases planning depth in 4-in-a-row
-https://www.nature.com/articles/s41586-023-06124-2 
-- **Yao et al. (2024)**: Planning horizon as latent confounder in IRL
-https://arxiv.org/abs/2409.18051 
-- **Mhammedi et al. (2023)**: Multi-step inverse RL perspective
-https://arxiv.org/abs/2304.05889 
+**RQ1: Model Feasibility**
+> Can fixed planning depth *h* be explicitly modeled and identified from behavior alone?
+
+- **H1a**: Different *h* values produce measurably different behavioral patterns
+- **H1b**: AIRL discriminator can learn to distinguish trajectories by *h*
+- **Success Criteria**:
+  - KL divergence > 0.1 between h=1 vs h=4
+  - Discriminator accuracy > 70% on held-out test set
+
+**RQ2: Replication & Extension**
+> Can we replicate van Opheusden et al. (2023) findings using Planning-Aware AIRL?
+
+- **Original Finding**: Experts use *shallower* planning (PV depth: Expert 6.2 vs Novice 7.3 steps, p<0.01)
+- **Our Test**: Does inferred *h* from AIRL correlate with expertise?
+- **Success Criteria**:
+  - If negative correlation → replicates original (efficient planning)
+  - If positive correlation → needs theoretical explanation
+  - If no correlation → *h* may not capture expertise
+
+**RQ3: Parameter Identifiability**
+> Is *h* an identifiable structural parameter from behavior?
+
+- **Test**: Ground truth recovery from synthetic data
+- **Success Criteria**:
+  - Train D₁, D₄ on h=1, h=4 data
+  - Cross-validation accuracy > 70%
+  - Within-participant consistency (same h across sessions)
+
+**RQ4: Expertise Prediction**
+> Does inferred *h* predict expertise (Elo rating)?
+
+- **Analysis**: Correlation and group comparison (n=40 participants)
+- **Success Criteria**:
+  - |Spearman r| > 0.4, p < 0.05 (adequate power with n=40)
+  - Or meaningful group difference (Cohen's d > 0.9)
 
 ---
 
 ## 📊 Dataset
 
 **Source**: van Opheusden et al. (2023) 4-in-a-row behavioral dataset
+
 - **Participants**: 40 humans
 - **Trials**: 67,331 game moves
-- **Conditions**: learning, time pressure, eye tracking, fMRI, generalization
-- **Models**: 22 cognitive model variants (ablations, alternatives)
+- **Elo Ratings**: 1464-1535 (computed from 318 human-vs-human games)
+- **Expertise Groups**: 10 experts, 20 intermediate, 10 novices (tertile-based)
 
-**Data files**: `opendata/` (CSV format)
+**Data files**:
+- `opendata/raw_data.csv`: Trial-level behavioral data
+- `opendata/model_fits_main_model.csv`: Van Opheusden model parameters
+- `data/human_elo_ratings.csv`: Elo ratings with expertise labels
+- `data/human_game_results.csv`: Game outcomes (318 games)
+
+**Reference**: https://www.nature.com/articles/s41586-023-06124-2
 
 ---
 
 ## 🔬 Analysis Pipeline
 
-### Phase 1: Behavioral Modeling ✅ (In Progress)
+### Phase 0: Feasibility Study ⭐ **Current Phase**
 
-**Status**: Data exploration and baseline analysis complete
+**Goal**: Test whether Planning-Aware AIRL is viable before applying to pedestrian task
 
-1. **Data reanalysis** (`data_reanalysis.py`)
-   - Parameter distributions
-   - Expertise classification (composite score)
-   - Visualization suite
+**Status**: Data generation complete, validation in progress
 
-2. **Model comparison** (`model_comparison_analysis.py`)
-   - Compare 22 model variants
-   - Log-likelihood ranking
-   - Participant-level preferences
+#### Methodological Innovation: Fixed Horizon Wrapper
 
-3. **Immediate analysis** (`immediate_analysis.py`)
-   - Planning depth vs expertise
-   - Discrimination tests (AUC)
-   - Response time correlations
+**Problem**: Variable episode lengths create confounding
+```
+h=1 episodes: avg 17 steps
+h=4 episodes: avg 26 steps
+→ Discriminator can cheat by learning episode length!
+```
 
-**Key Finding**: Expert players show *shallower* planning depth than novices (p=0.01), suggesting efficient rather than deep planning.
-
-### Phase 2: Planning-Aware AIRL 🚧 (71% Complete)
-
-**Goal**: Implement Planning-Aware AIRL with discrete planning depth h ∈ {1,2,4,8}
-
-**Main Approach**: **Option A (Pure NN)** ⭐ - Random 초기화, 순수 AIRL 학습
-**Baseline**: Option B (BC) - BFS → BC → AIRL (Steps A-E 완료)
-
-**Status**: Baseline 완료 (71%), Main experiments 진행 예정
-
-#### ✅ Completed Steps (Option B - Baseline)
-
-| Step | Description | File | Status |
-|------|-------------|------|--------|
-| A | h-specific 학습 데이터 생성 | `generate_training_data.py` | ✅ |
-| B | Behavior Cloning (BC) | `train_bc.py` | ✅ |
-| C | BC를 PPO로 래핑 | `create_ppo_generator.py` | ✅ |
-| D | Depth-AGNOSTIC 보상 네트워크 | `create_reward_net.py` | ✅ |
-| E | AIRL 학습 | `train_airl.py` | ✅ |
-| F | Multi-Depth 비교 | (next) | 🔄 |
-| G | 평가 및 분석 | (planned) | 📋 |
-
-#### 🔄 Next: Option A Main Experiments
-
-- [ ] Option A 학습 (h=1,2,4,8) - 50K-100K steps each
-- [ ] Performance evaluation
-- [ ] Option A vs B comparison
-
-**핵심 원칙**: Planning depth h는 **Policy에만** 존재, **Reward Network**에는 없음
-
+**Solution**: Pedestrian-style fixed horizon wrapper
 ```python
-# ✅ CORRECT
-policy = DepthLimitedPolicy(h=h)              # h HERE
-reward_net = create_reward_network(env)       # NO h!
-observations.shape == (T+1, 89)               # NO h!
+# All episodes padded to 36 steps
+# Observations: 89-dim → 90-dim (+ absorbing flag)
+# Absorbing states: explicit termination signal
 ```
 
-**Quick Start**:
-```bash
-cd fourinarow_airl
-conda activate pedestrian_analysis
-export KMP_DUPLICATE_LIB_OK=TRUE
+**Impact**:
+- ✅ Removes length-based confounding
+- ✅ Forces discriminator to learn behavioral patterns
+- ✅ Enables valid statistical comparison
 
-# Run full pipeline
-python3 generate_training_data.py --num_episodes 100
-python3 train_bc.py --n_epochs 50
-python3 create_ppo_generator.py
-python3 train_airl.py --total_timesteps 50000
+**Reference**: Pedestrian project (`project_pedestrian/analysis/irl/util.py`)
+
+#### Phase 0 Steps
+
+| Step | Task | Status | Output |
+|------|------|--------|--------|
+| **0.1** | Generate fixed-horizon data (h=1,4) | ✅ Complete | 100 eps × 2h = 200 episodes |
+| **0.2** | Validate data (KL/JS divergence) | 🔄 In Progress | RQ1a answer |
+| **0.3** | Pilot AIRL training (h=1) | 📋 Planned | Feasibility check |
+| **0.4** | Full AIRL training (h=1,4) | 📋 Planned | RQ1b answer |
+| **0.5** | Cross-evaluation | 📋 Planned | RQ3 answer |
+| **0.6** | Human data extraction | 📋 Planned | Phase 2.5 prep |
+| **0.7** | Expertise analysis | 📋 Planned | RQ2, RQ4 answer |
+
+**Key Files**:
+- `fourinarow_airl/fixed_horizon_wrapper.py`: Fixed horizon implementation
+- `fourinarow_airl/generate_training_data_fixed_horizon.py`: Data generation
+- `fourinarow_airl/IMPLEMENTATION_GUIDE.md`: Complete execution guide
+- `MASTER_TODO.md`: Detailed progress tracking with decision log
+
+**Decision Points**:
 ```
-
-**문서**: [PHASE2_PROGRESS.md](progress/PHASE2_PROGRESS.md), [AIRL_DESIGN.md](docs/AIRL_DESIGN.md)
-
-### Phase 3: Clinical & Neural 🔮 (Planned)
-
-**Goal**: Apply Planning-Aware AIRL to clinical traits and neural correlates
-
-1. **Clinical modeling**
-   - Clinical traits → planning parameters
-   - Explainable individual differences
-
-2. **Neural correlates**
-   - fMRI trial-wise regressors
-   - Planning parameter mapping
+Step 0.2: KL < 0.1? → STOP (h doesn't create difference)
+Step 0.3: Disc acc < 0.7? → Debug hyperparameters
+Step 0.5: Accuracy < 70%? → h not identifiable
+Step 0.7: No correlation? → Negative result (still valuable!)
+```
 
 ---
 
-## 🚀 Quick Start
+### Phase 1: Behavioral Modeling ✅ **Complete**
 
-### Installation after setting conda env
+**Goal**: Understand van Opheusden (2023) dataset and establish baselines
 
-```bash
-# Clone repository
-git clone https://github.com/haba6030/xRL_pilot.git
-cd xRL_pilot
+#### Key Findings
 
-# Install Python dependencies
-pip install pandas numpy matplotlib seaborn scipy scikit-learn
+**Planning Depth Pattern**:
+```
+Expert:  6.23 ± 1.30 steps (PV depth)
+Novice:  7.29 ± 0.55 steps
+Correlation with Elo: r = -0.50, p < 0.01
 
-# Optional: Jupyter for notebooks
-pip install jupyter
+→ Experts use SHALLOWER planning (efficient, not brute-force)
 ```
 
-### Run Analyses
+**Expertise Classification**:
+- AUC: 0.982 (parameters only)
+- Top features: log-likelihood, pruning threshold
+- Planning depth coefficient: -0.59 (deeper → novice direction)
 
-```bash
-# Data reanalysis
-python data_reanalysis.py
+**Implications for Phase 0**:
+- Hypothesis: Inferred h should be LOWER for experts
+- If our result differs → needs theoretical explanation
 
-# Model comparison
-python model_comparison_analysis.py
+---
 
-# Immediate analysis (requires depth_by_session.txt)
-python immediate_analysis.py
+### Phase 2: Planning-Aware AIRL 🚧 **Redesigned**
 
-# View results
-open analysis_*.png
-```
+**Previous Status**: 71% complete (Option B baseline)
 
-### Explore Data
+**Current Status**: Restarted with Pedestrian methodology
 
+**Major Changes**:
+1. ❌ **Removed**: Variable-length trajectories (89-dim obs)
+2. ✅ **Added**: Fixed horizon wrapper (90-dim obs with absorbing flag)
+3. ✅ **Added**: Large-scale data generation (100+ episodes per h)
+4. ✅ **Added**: Proper statistical framework (participant-level analysis)
+
+**Rationale**:
+- Variable horizon creates confounding bias
+- Small sample size (5 episodes) lacks statistical power
+- Need rigorous validation before pedestrian application
+
+**New Approach**:
 ```python
-import pandas as pd
-
-# Load raw behavioral data
-raw = pd.read_csv('opendata/raw_data.csv')
-print(f"Trials: {len(raw)}, Participants: {raw['participant'].nunique()}")
-
-# Load model fits
-main_model = pd.read_csv('opendata/model_fits_main_model.csv')
-print(main_model[['pruning threshold', 'lapse rate', 'log-likelihood']].describe())
+# Data: 100 episodes × 2 h values
+# All episodes: exactly 36 steps (fixed horizon)
+# Observation: (37, 90) - includes absorbing flag
+# AIRL training: 10K rounds per h
+# Evaluation: Cross-validation, participant-level analysis
 ```
+
+---
+
+### Phase 2.5: Human Data Analysis 📋 **Planned**
+
+**Goal**: Test RQ2 and RQ4 on real human data
+
+**Data Source**:
+- 40 participants from `opendata/raw_data.csv`
+- Extract human-vs-human game trajectories
+- Convert to fixed-horizon format (37, 90)
+
+**Analysis**:
+```python
+# Per-participant (n=40, independent samples)
+for participant in 1..40:
+    scores_h1 = mean([D₁(traj) for traj in participant_trajectories])
+    scores_h4 = mean([D₄(traj) for traj in participant_trajectories])
+    inferred_h = argmax(scores_h1, scores_h4)
+
+# Statistical tests
+- Correlation: inferred_h ~ Elo (Spearman)
+- Group test: Expert vs Novice (Mann-Whitney U)
+- Effect size: Cohen's d, AUC
+```
+
+**Expected Timeline**: After Phase 0 completion
+
+---
+
+### Phase 3: Pedestrian Application 🔮 **Future**
+
+**Condition**: Proceed only if Phase 0 shows positive results
+
+**Requirements**:
+- RQ1 ✅: h is identifiable (accuracy > 70%)
+- RQ3 ✅: AIRL framework works
+- RQ4 ✅ (preferred): h predicts expertise
+
+**If Phase 0 Fails**:
+- Negative results are publishable (method paper)
+- Reconsider approach or task choice
+- Document lessons learned
 
 ---
 
@@ -178,119 +233,183 @@ print(main_model[['pruning threshold', 'lapse rate', 'log-likelihood']].describe
 
 ```
 xRL_pilot/
-├── fourinarow_airl/          # Phase 2 implementation (Planning-Aware AIRL)
-│   ├── generate_training_data.py  # Step A
-│   ├── train_bc.py                # Step B
-│   ├── create_ppo_generator.py    # Step C
-│   ├── create_reward_net.py       # Step D
-│   ├── train_airl.py              # Step E
-│   ├── airl_utils.py              # Utilities
-│   └── fourinarow_env.py          # Environment
+├── fourinarow_airl/              # Phase 0 & 2 implementation
+│   ├── fixed_horizon_wrapper.py       # ⭐ Pedestrian-style wrapper
+│   ├── generate_training_data_fixed_horizon.py  # Large-scale data gen
+│   ├── train_airl_fixed_horizon.py    # AIRL training script
+│   ├── evaluate_discriminators.py     # Cross-evaluation (RQ3)
+│   ├── analyze_generated_data.py      # Data validation (RQ1a)
+│   ├── extract_human_trajectories.py  # Phase 2.5 data prep
+│   ├── analyze_human_h.py             # Phase 2.5 analysis (RQ2, RQ4)
+│   ├── env.py                         # 4-in-a-row environment
+│   ├── depth_limited_policy.py        # h-step lookahead policy
+│   ├── airl_utils.py                  # Trajectory conversion
+│   └── IMPLEMENTATION_GUIDE.md        # Complete execution guide
+│
 ├── data/
-│   ├── training_trajectories/     # Step A outputs
-│   └── expert_trajectories/       # Expert data
+│   ├── training_trajectories/         # Generated data (Phase 0)
+│   │   ├── trajectories_h1_fixed_horizon.pkl  # 100 episodes, h=1
+│   │   ├── trajectories_h4_fixed_horizon.pkl  # 100 episodes, h=4
+│   │   └── summary_h*.txt                     # Statistics
+│   ├── human_elo_ratings.csv          # Elo ratings (40 participants)
+│   ├── human_game_results.csv         # Game outcomes (318 games)
+│   └── human_trajectories_fixed_horizon.pkl  # Phase 2.5 (future)
+│
 ├── models/
-│   ├── bc_policies/               # Step B outputs
-│   ├── ppo_generators/            # Step C outputs
-│   └── airl_results/              # Step E outputs
-├── opendata/                  # Phase 1 experimental data (CSV)
-│   ├── raw_data.csv          # 67K trials
-│   └── model_fits_*.csv      # 22 model variants
-├── papers/                    # Reference papers (PDF)
-├── xRL_pilot/                # van Opheusden (2023) codebase
-│   ├── Model code/           # C++ implementation
-│   │   ├── bfs.cpp           # Best-first search + PV depth
-│   │   ├── heuristic.cpp     # 17 feature weights
-│   │   └── matlab wrapper/   # Parameter fitting (BADS)
-│   └── Analysis notebooks/   # Jupyter notebooks
-├── *.py                      # Phase 1 analysis scripts
-├── AIRL_DESIGN.md            # Phase 2 design document
-├── PHASE2_PROGRESS.md        # Phase 2 progress tracking
-├── IMPLEMENTATION_NOTES.md   # Technical implementation details
-├── CLAUDE.md                 # Full research plan
-└── README.md                 # This file
+│   └── airl_fixed_horizon/            # Trained models
+│       ├── h1/                        # h=1 discriminator & generator
+│       └── h4/                        # h=4 discriminator & generator
+│
+├── figures/                           # Visualizations
+│   ├── data_validation_fixed_horizon.png
+│   ├── discriminator_cross_eval.png
+│   └── expertise_analysis.png
+│
+├── opendata/                          # Van Opheusden (2023) data
+│   ├── raw_data.csv                   # 67K behavioral trials
+│   └── model_fits_main_model.csv      # Original model parameters
+│
+├── docs/
+│   ├── AIRL_DESIGN.md                 # Original design doc
+│   ├── FOLDER_STRUCTURE.md            # ⭐ Detailed structure guide
+│   └── IMPLEMENTATION_GUIDE.md        # Step-by-step guide
+│
+├── MASTER_TODO.md                     # ⭐ Progress tracking + decisions
+├── README.md                          # This file
+└── CLAUDE.md                          # Research plan (project instructions)
 ```
 
-**Phase 2 문서**:
-- [AIRL_DESIGN.md](docs/AIRL_DESIGN.md) - Planning-Aware AIRL 설계
-- [AIRL_COMPLETE_GUIDE.md](docs/AIRL_COMPLETE_GUIDE.md) - 전체 실행 가이드 ⭐
-- [PHASE2_PROGRESS.md](progress/PHASE2_PROGRESS.md) - 현재 진행 상황 (71% complete)
-- [IMPLEMENTATION_NOTES.md](docs/IMPLEMENTATION_NOTES.md) - 구현 기술 참고사항
+**Key**: ⭐ = Essential for Phase 0
 
-**Phase 1 문서** (archived):
-- [PROJECT_SUMMARY.md](archive/PROJECT_SUMMARY.md) - Phase 1 detailed documentation
-- [FOLDER_STRUCTURE.md](archive/FOLDER_STRUCTURE.md) - Complete directory guide
+See `docs/FOLDER_STRUCTURE.md` for complete file descriptions.
 
 ---
 
-## 📈 Current Results
+## 🚀 Quick Start
 
-### Expertise Classification
+### Prerequisites
 
-**Baseline (parameters only)**:
-- AUC: **0.982**
-- Accuracy: 96.7%
-- Top features: log-likelihood (+1.76), pruning threshold (+1.46)
-
-**With planning depth**:
-- AUC: 0.987 (marginal improvement)
-- **Finding**: Depth coefficient is *negative* (-0.59)
-  - Deeper planning → Novice direction
-  - Supports "efficient planning" hypothesis
-
-### Planning Depth Pattern
-
-```
-Expert:  6.23 ± 1.30 steps
-Novice:  7.29 ± 0.55 steps
-p = 0.011
-
-Correlation with performance: r = -0.50 (p < 0.01)
-→ Deeper planning associated with *worse* performance
+```bash
+conda activate pedestrian_analysis  # Reuse pedestrian environment
+cd fourinarow_airl
+export KMP_DUPLICATE_LIB_OK=TRUE
 ```
 
-**Interpretation**: Expertise reflects efficient pruning, not brute-force depth.
+### Phase 0 Execution (Current)
 
-### Model Comparison
+**Step 1: Validate Generated Data** (30 minutes)
+```bash
+python3 analyze_generated_data.py
 
-**Log-likelihood ranking** (higher = better):
-1. MCTS: 2.00
-2. No pruning: 2.00
-3. Main model: 1.95
-4. Fixed depth: 1.94
+# Expected output:
+# - All episodes exactly 36 steps ✓
+# - KL divergence > 0.1 ✓
+# - JS divergence > 0.1 ✓
+```
 
----
+**Step 2: Pilot AIRL Training** (1-2 hours)
+```bash
+python3 train_airl_fixed_horizon.py --h 1 --airl_train_n_rounds 1000
 
-## 🤝 Contributing
+# Monitor: discriminator accuracy > 0.7
+```
 
-This is a research project. For collaboration inquiries:
-- See [PROJECT_OVERVIEW.md](PROJECT_OVERVIEW.md) for research overview
-- New contributors: Read documentation in order (README → PROJECT_OVERVIEW → AIRL_DESIGN)
-- Questions: Open an issue on GitHub
+**Step 3: Full Training** (overnight)
+```bash
+# h=1 (4-6 hours)
+python3 train_airl_fixed_horizon.py --h 1 --airl_train_n_rounds 10000
 
----
+# h=4 (4-6 hours)
+python3 train_airl_fixed_horizon.py --h 4 --airl_train_n_rounds 10000
+```
 
-## 📚 References
+**Step 4: Evaluation**
+```bash
+python3 evaluate_discriminators.py
 
-1. **van Opheusden, B., et al. (2023)**. Expertise increases planning depth in human gameplay. *Nature*.
-2. **Yao, W., et al. (2024)**. Planning horizon as a latent confounder in inverse reinforcement learning.
-3. **Mhammedi, Z., et al. (2023)**. Reinforcement learning for multi-step inverse kinematics.
+# Expected: Classification accuracy > 70%
+```
 
----
-
-## 📄 License
-
-MIT License (see LICENSE file)
-
----
-
-## 🔗 Links
-
-- **Original codebase**: [van Opheusden et al. (2023)](https://github.com/original-repo)
-- **Project overview**: See [PROJECT_OVERVIEW.md](PROJECT_OVERVIEW.md)
-- **Design document**: See [docs/AIRL_DESIGN.md](docs/AIRL_DESIGN.md)
+**See `MASTER_TODO.md` for detailed checklist and decision log.**
 
 ---
 
-**Last Updated**: 2025-12-26
-**Current Phase**: Phase 2 - Planning-Aware AIRL (71% complete)
+## 📊 Current Results
+
+### Phase 0: Data Generation ✅
+
+```
+Generated Data (2025-12-26):
+  h=1: 100 episodes
+    - Episode length: 36 steps (fixed)
+    - Avg real gameplay: ~17 steps
+    - Avg absorbing: ~19 steps
+
+  h=4: 100 episodes
+    - Episode length: 36 steps (fixed)
+    - Avg real gameplay: ~26 steps
+    - Avg absorbing: ~10 steps
+
+Behavioral Difference (preliminary, 5 episodes):
+  KL divergence: 0.1642
+  JS divergence: 0.2178
+
+  → Promising signal for RQ1a ✓
+  → Need validation with full 100 episodes
+```
+
+### Phase 1: Baseline Findings (from van Opheusden)
+
+```
+Expertise Pattern:
+  Expert PV depth: 6.23 ± 1.30
+  Novice PV depth: 7.29 ± 0.55
+  Correlation: r = -0.50, p < 0.01
+
+  → Experts use shallower planning
+  → Hypothesis for RQ2/RQ4
+```
+
+---
+
+## 📚 Key References
+
+### Theoretical Foundation
+
+1. **van Opheusden, B., et al. (2023)**. Expertise increases planning depth in human gameplay. *Nature*, 618, 1000-1005.
+   - https://www.nature.com/articles/s41586-023-06124-2
+   - **Relevance**: RQ2 replication target, PV depth methodology
+
+2. **Yao, W., et al. (2024)**. Planning horizon as a latent confounder in inverse reinforcement learning. *arXiv:2409.18051*.
+   - **Relevance**: Theoretical motivation for explicit h modeling
+
+3. **Mhammedi, Z., et al. (2023)**. Reinforcement learning for multi-step inverse kinematics. *arXiv:2304.05889*.
+   - **Relevance**: Multi-step perspective on IRL
+
+### Methodological Reference
+
+4. **Kakade, S., & Langford, J. (2002)**. Approximately optimal approximate reinforcement learning. *ICML*.
+   - **Relevance**: Variable horizon bias in policy gradient
+
+5. **Imitation Learning Documentation**. Variable horizon environments considered harmful.
+   - https://imitation.readthedocs.io/en/latest/main-concepts/variable_horizon.html
+   - **Relevance**: Fixed horizon wrapper design
+
+---
+
+## 📝 Citation
+
+If you use this code or methodology, please cite:
+
+```bibtex
+@article{vanopheusden2023expertise,
+  title={Expertise increases planning depth in human gameplay},
+  author={van Opheusden, Bas and others},
+  journal={Nature},
+  volume={618},
+  pages={1000--1005},
+  year={2023}
+}
+```
+
+---
