@@ -226,40 +226,6 @@ h_estimate = PV_depth  # ❌ 다른 개념
 
 ---
 
-## 🎓 출판 전략
-
-### 논문 1: 방법론 비교 (워크샵)
-
-**제목**: "Planning Depth 추정에서의 분포 불일치 Artifacts"
-
-**기여**:
-1. Rollout-free posterior 방법
-2. Random rollout에서 +1.09 스텝 편향
-3. 인간의 근시안적 계획 (h ≈ 1.8)
-
-**타겟**: NeurIPS Workshop / ICML Workshop
-
-**일정**: 2-3주
-
----
-
-### 논문 2: Planning-Aware IRL (정규 논문)
-
-**제목**: "역강화학습에서 잠재 교란 변수로서의 Planning Depth: 전문성 예측 없이 식별 가능성"
-
-**기여**:
-1. h 식별 가능성 (93.8% 정확도)
-2. h는 expertise와 직교 (강건한 null 결과)
-3. Feature-based expertise 모델 (AUC = 0.84)
-4. Rollout 방법 비교
-5. van Opheusden과의 조화 (PV depth ≠ h)
-
-**타겟**: ICLR / NeurIPS 본 학회
-
-**일정**: 2-3개월
-
----
-
 ## 🔮 다음 단계
 
 ### 즉시 (1주)
