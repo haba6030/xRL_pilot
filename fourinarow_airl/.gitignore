@@ -27,6 +27,9 @@ build/
 # Deprecated: Heuristic-based approach (backup)
 backup_heuristic_approach/
 
+# Backup: Old analysis scripts and logs
+backup/
+
 # Large training data (heuristic-based, deprecated)
 data/training_trajectories/
 data/training_trajectories_beta10/
