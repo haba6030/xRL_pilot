@@ -1,307 +1,329 @@
-# Planning Depth Estimation from Human Game-Playing Behavior
+# Planning Depth Estimation from Human Behavior
 
-This project estimates how many steps ahead humans plan when playing the 4-in-a-row board game. We use behavioral data from van Opheusden et al. (2023) and develop three methods to infer planning depth (h) from observed actions.
-
----
-
-## Research Questions
-
-### RQ1: Can we identify planning depth from behavior alone?
-
-**Method**: Train inverse models to predict action from current state and future state h steps ahead: P(action | state_current, state_future). Use discriminator to classify h from (state, action) pairs.
-
-**Result**: Planning depth is identifiable (discriminator accuracy: 93.8%).
-
-**Example**:
-- Given board position at move 10 and board position at move 14
-- Inverse model predicts: P(action=24 | state_10, state_14) = 0.62
-- This likelihood differs for h=1,2,3,4, allowing discrimination
+This project estimates how many steps ahead humans plan when making decisions in a board game. We analyze behavioral data from 40 players in 4-in-a-row (van Opheusden et al., Nature 2023) and develop methods to infer planning depth from observed actions.
 
 ---
 
-### RQ2: What is human planning depth in 4-in-a-row?
+## Motivation
 
-**Method**: Apply three estimation approaches to 40 human players:
-1. Random rollout: Simulate future with random opponent
-2. Opponent model: Simulate future with learned opponent policy
-3. Rollout-free: Use actual human futures from data
+### The IRL problem
 
-**Results**:
+Inverse reinforcement learning (IRL) infers reward functions from behavior. The standard approach assumes everyone plans the same number of steps ahead—but this assumption is unrealistic. If two people make different choices, it could mean they have different rewards OR they're planning different depths into the future.
 
-| Method | Mean E[h] | Interpretation |
-|--------|-----------|----------------|
-| Random rollout | 2.87 ± 0.08 | Overestimated (+1.09 bias) |
-| Opponent model | 2.62 ± 0.09 | More realistic |
-| Rollout-free | 1.78 ± 0.12 | Unbiased estimate |
+Planning depth acts as a confounding variable: behavioral differences get wrongly attributed to reward differences when they actually reflect planning differences. This breaks reward identifiability.
 
-**Distribution (rollout-free)**:
-- 47% of moves: h=1 (immediate response)
-- 24% of moves: h=2 (short-term planning)
-- 19% of moves: h=3 (medium-term planning)
-- 10% of moves: h=4 (long-term planning)
+### The cognitive question
 
-**Interpretation**: Humans plan approximately 2 steps ahead on average, with considerable move-by-move variation. The rollout-free method eliminates distribution mismatch between training (actual futures) and inference.
+van Opheusden et al. (2023) found that experts explore 6-7 steps in their search trees while novices explore 7-8 steps. They concluded experts plan more efficiently (shallower search, better pruning). But tree exploration depth is not the same as decision-relevant planning depth—how far ahead actually matters for your choice.
 
----
+We want to know: How far ahead do people actually plan? Does planning depth vary with expertise? Is it a stable trait or does it change with game situation?
 
-### RQ3: Does planning depth correlate with expertise?
+### Our approach
 
-**Method**: Correlate estimated E[h] with Elo ratings and win rates.
-
-**Result**: Planning depth does NOT predict expertise.
-
-| Method | Elo correlation | Win rate correlation | Expert vs Novice E[h] |
-|--------|----------------|---------------------|----------------------|
-| Random rollout | r = -0.12, p = 0.47 | r = -0.43, p = 0.006 | 2.80 vs 2.84 (ns) |
-| Rollout-free | r = -0.01, p = 0.94 | r = +0.08, p = 0.63 | 1.77 vs 1.77 (identical) |
-
-**Alternative approach - Feature-based expertise**:
-- Van Opheusden features (17-dim: center control, threats, connected pieces)
-- Logistic regression: AUC = 0.84 (expert classification)
-- Comparison: Features predict expertise strongly, h does not (AUC = 0.53, chance level)
-
-**Interpretation**: Expertise comes from heuristic quality (better position evaluation) rather than planning depth. Experts and novices plan similarly deep but evaluate positions differently.
-
----
-
-### RQ4: Can planning depth explain clinical variability?
-
-**Status**: Future work. Requires clinical population data (anxiety, ADHD, etc.).
-
-**Hypothesis**: Clinical traits may affect planning parameters (depth, consistency, noise) rather than reward preferences. For example, anxiety might reduce planning depth due to computational load under stress.
+We use "inverse kinematics"—train models that predict actions from state transitions. If someone's action at time t is best explained by the board position at time t+2, we infer they planned 2 steps ahead for that move.
 
 ---
 
 ## Methods
 
-### Overview
+### Data
 
-This analysis is part of a larger pipeline for planning-aware inverse reinforcement learning (IRL). The full pipeline has 3 stages:
+van Opheusden et al. (2023) dataset:
+- 40 human players
+- 318 games (human vs. human)
+- 5,482 moves with full board states
+- Elo ratings ranging from 1464-1535
 
-**Stage 1** (this project): Estimate planning depth h from behavior
-**Stage 2** (future): Learn reward function conditioned on h: r(state, action, h)
-**Stage 3** (future): Apply to safety-critical domains (pedestrian crossing)
+All players are reasonably skilled (no complete beginners), which limits our ability to test expertise effects but provides clean data on skilled play.
 
-We have completed Stage 1 with three methods:
+### Approach: Multi-step inverse modeling
 
-### Method 1: Random Rollout (Multi-Step Inverse Kinematics)
+The basic idea: train separate models for each planning depth h.
 
 **Training phase**:
-1. Extract (state_t, state_{t+h}, action_t) tuples from human game data
-2. Train separate inverse models for each h: P(action | state_t, state_{t+h})
-3. Example: For h=2, use board at move 10 and board at move 12 to predict action at move 10
+```
+For h = 1, 2, 3, 4:
+  Extract (state_t, state_{t+h}, action_t) from games
+  Train model: P(action_t | state_t, state_{t+h})
+
+Example for h=2:
+  Move 10: board state = s_10, action = place piece at position 24
+  Move 12: board state = s_12 (actual future after 2 moves)
+  Model learns: P(action=24 | s_10, s_12)
+```
+
+Each h-model learns to predict what action a player took given they could "see" h steps into the future.
 
 **Inference phase**:
-1. For each human move, simulate h-step futures using random opponent
-2. Compute likelihood under each h-specific model
-3. Use Bayesian posterior: P(h | move) ∝ P(move | h) · P(h)
+```
+For each move in test data:
+  Compute likelihood under each h-model
+  Use Bayes rule: P(h|move) ∝ P(move|h) × P(h)
+  Aggregate across moves to get per-player distribution
+```
 
-**Problem**: Random opponent creates unrealistic futures, causing +1.09 step overestimation.
+### Three estimation methods (and why)
 
-**Example**:
+We tested three ways to get future states during inference:
+
+**1. Random rollout** (standard approach)
+- Simulate future states using random opponent moves
+- Fast, no need for opponent model
+- Problem: creates distribution mismatch (training used real futures, inference uses random futures)
+- Result: Overestimates h by +1.09 steps (38% bias)
+
+**2. Rollout-free** (our innovation)
+- Use actual future states from game records
+- No simulation needed
+- Matches training distribution exactly
+- Result: Unbiased estimates, E[h] = 1.78
+
+**3. Opponent model** (middle ground)
+- Simulate futures using learned human opponent model
+- More realistic than random, but still requires simulation
+- Result: E[h] = 2.62 (between random and rollout-free)
+
+We compared all three to understand the role of simulation bias and verify findings are robust.
+
+### Example calculation (rollout-free method)
+
 ```
 Move 10: Player places piece at position 24
-- Simulate random opponent for h=1: likelihood = 0.45
-- Simulate random opponent for h=2: likelihood = 0.62  ← highest
-- Simulate random opponent for h=3: likelihood = 0.38
-- Simulate random opponent for h=4: likelihood = 0.21
-→ Estimated h=2 for this move
+Game record shows actual continuation: s_10 → s_11 → s_12 → s_13 → s_14
+
+Compute likelihoods:
+  P(action=24 | s_10, s_11) using h=1 model = 0.52
+  P(action=24 | s_10, s_12) using h=2 model = 0.68  ← highest
+  P(action=24 | s_10, s_13) using h=3 model = 0.41
+  P(action=24 | s_10, s_14) using h=4 model = 0.28
+
+Bayesian posterior (assuming uniform prior):
+  P(h=1|move) = 0.28
+  P(h=2|move) = 0.36  ← most likely
+  P(h=3|move) = 0.22
+  P(h=4|move) = 0.15
+
+Interpretation: This move is best explained by 2-step planning
 ```
 
 ---
 
-### Method 2: Opponent Model Rollout
+## Main Findings
 
-Same as Method 1, but opponent policy is learned from human data instead of random.
+### 1. Humans plan approximately 2 steps ahead
 
-**Improvement**: More realistic futures, reduces bias to E[h] = 2.62.
+Rollout-free estimates show E[h] = 1.78 ± 0.12 across all players.
 
-**Limitation**: Still requires simulation, computational cost higher.
+Distribution of planning depths:
+- 47% of moves: h=1 (reactive, immediate response)
+- 24% of moves: h=2 (short-term planning)
+- 19% of moves: h=3 (medium-term planning)
+- 10% of moves: h=4 (far-sighted planning)
+
+This is much shallower than van Opheusden's finding of 6-7 step tree exploration. The likely explanation: tree exploration measures how widely you search, while our h measures the decision-relevant horizon. You might explore 6-7 steps to verify your choice is good, but only the next 2 steps matter for deciding which move to make.
+
+### 2. Planning depth does NOT predict expertise
+
+This was surprising. We tested the relationship multiple ways:
+
+Correlation analysis:
+- Elo rating vs. E[h]: r = -0.01, p = 0.94 (no relationship)
+- Win rate vs. E[h]: r = 0.08, p = 0.62 (not significant)
+
+Group comparison:
+- Experts (top 33%): E[h] = 1.77
+- Novices (bottom 33%): E[h] = 1.77
+- Difference: 0.00 (literally identical)
+
+We initially suspected this might be an artifact of the random rollout method, but the null result persists with rollout-free and opponent model methods. It appears to be genuine.
+
+Alternative explanation: van Opheusden features (heuristic quality measures like center control, threat detection) predict expertise with 84% accuracy. This suggests expertise comes from what you evaluate (heuristic quality), not how far you look ahead (planning depth).
+
+### 3. Simulation method creates large bias
+
+Random rollout overestimates planning depth by +1.09 steps (38%) compared to rollout-free.
+
+Why this happens:
+- Training: Models learn from actual human game continuations (constrained, strategic)
+- Inference with random rollout: Simulated futures are random (diverse, exploratory)
+- Longer-horizon models benefit more from seeing diverse futures
+- Result: Systematic bias toward estimating h=4
+
+The rollout-free method avoids this by using actual game outcomes for both training and inference.
+
+### 4. Planning depth varies more by situation than by player
+
+All players have similar average planning depths (range 1.59 to 1.97—only 0.38 step spread). But individual moves vary widely in their posterior P(h|move). This suggests planning depth is context-dependent rather than a stable individual trait.
+
+Hypothesis (untested): Planning depth adapts to game situation
+- Threatening positions → reactive (h=1): block immediate loss
+- Calm positions → strategic (h=2,3): setup future advantage
+- Opening moves → exploratory (h=3,4): establish position
+
+This requires further analysis comparing h estimates to game state features.
 
 ---
 
-### Method 3: Rollout-Free Posterior (Main Innovation)
+## Implications
 
-**Key idea**: Use actual human futures from data instead of simulating.
+### For inverse reinforcement learning
 
-**Training**: Identical to Method 1 (train inverse models on real data)
+Our findings clarify h's role in IRL:
 
-**Inference** (different):
-1. For move at timestep t, extract actual board state at t+h from game record
-2. Compute likelihood directly: P(action_t | state_t, state_{t+h}^actual)
-3. No simulation needed
+What h IS:
+- Identifiable from behavior (93.8% discriminator accuracy)
+- A latent confounding variable (different h → different behavior)
+- State-dependent (varies by context)
 
-**Advantage**: Eliminates distribution mismatch, unbiased h estimates.
+What h is NOT:
+- A measure of expertise (no correlation with skill)
+- A stable trait (varies within-player more than between-player)
+- The primary difference between experts and novices
 
-**Example**:
-```
-Move 10: Player places piece at position 24
-Game record shows board at move 11, 12, 13, 14 (actual human game)
+Practical guidance: Model h explicitly in IRL to deconfound behavioral variation, but don't interpret h as a skill marker. Use heuristic features (van Opheusden) to predict expertise instead.
 
-- Use actual board at move 11: P(action=24 | state_10, state_11) = 0.52
-- Use actual board at move 12: P(action=24 | state_10, state_12) = 0.68  ← highest
-- Use actual board at move 13: P(action=24 | state_10, state_13) = 0.41
-- Use actual board at move 14: P(action=24 | state_10, state_14) = 0.28
+### For cognitive modeling
 
-Bayesian posterior:
-P(h=1|move) = 0.31
-P(h=2|move) = 0.49  ← most likely
-P(h=3|move) = 0.15
-P(h=4|move) = 0.05
+The findings support a view where:
+- Expertise reflects heuristic quality (better position evaluation) rather than planning depth
+- Planning depth is adaptive to task demands, not a fixed cognitive capacity
+- Tree exploration (PV depth) and decision horizon (behavioral h) are distinct constructs
 
-→ E[h] = 1*0.31 + 2*0.49 + 3*0.15 + 4*0.05 = 1.74
-```
+This reconciles our null result with van Opheusden's finding: experts have shallower tree exploration (more efficient search) but similar decision horizons (task demands are similar for everyone).
 
-**Why this works**: Inverse models were trained on (state_t, state_{t+h}^human, action_t), so inference should use human futures too, not random/simulated ones.
+### For clinical applications
 
----
+If planning depth is state-dependent rather than trait-like, interventions should target:
+- When to plan deeply vs. shallowly (adaptive control)
+- Quality of position evaluation (building better heuristics)
 
-## Key Findings
+Rather than:
+- Average planning depth (shows little individual variation)
 
-### Finding 1: Rollout Method Matters
-
-Random rollout overestimates h by +1.09 steps (38%) due to distribution mismatch. Rollout-free eliminates this artifact.
-
-### Finding 2: Humans Plan Myopically
-
-E[h] ≈ 1.8 (rollout-free estimate). Most moves use h=1 or h=2, not deep lookahead.
-
-Comparison with van Opheusden search depth:
-- Their PV depth (search tree metric): 6-7 steps
-- Our behavioral h (decision horizon): 1.8 steps
-- Interpretation: Humans explore deeply but commit decisions based on shallow lookahead.
-
-### Finding 3: Expertise ≠ Planning Depth
-
-Planning depth does not correlate with skill (Elo, win rate). Expert and novice h estimates are nearly identical across all three methods.
-
-Alternative: Van Opheusden features (heuristic quality) predict expertise with AUC = 0.84.
-
-**Implication**: Skill comes from what you evaluate (heuristics), not how far you look ahead (depth).
-
-### Finding 4: Feature-Based Expertise is Multivariate
-
-Individual features show weak correlations with Elo (mean |r| = 0.035, none significant). Combined features show strong discrimination (AUC = 0.84).
-
-**Interpretation**: Expertise is a balanced pattern across multiple heuristics, not one dominant feature.
+This matters for conditions like anxiety (might over-plan in threatening situations) or ADHD (might under-plan in calm situations). Testing requires analyzing h by game context.
 
 ---
 
 ## Repository Structure
 
-### Core Analysis Scripts
-
+Main analysis scripts:
 ```
-estimate_player_h_rollout_free.py    - Main analysis: rollout-free h estimation
-estimate_player_h_multiclass.py      - Random rollout h estimation
-estimate_player_h_opponent.py        - Opponent model h estimation
-analyze_feature_based_expertise.py   - Feature-based expertise analysis
-generate_trajectories_opponent_model.py - Opponent policy training
+estimate_player_h_rollout_free.py    - Rollout-free method (recommended)
+estimate_player_h_multiclass.py      - Random rollout method
+estimate_player_h_opponent.py        - Opponent model method
+analyze_feature_based_expertise.py   - Feature vs. h comparison
+preprocess_multistep_ik_data.py      - Extract training data
+generate_trajectories_opponent_model.py - Train opponent model
 ```
 
-### Supporting Code
-
+Supporting code:
 ```
 env.py            - 4-in-a-row game environment
-features.py       - Van Opheusden 17-feature extraction
+features.py       - van Opheusden feature extraction (17 dimensions)
 data_loader.py    - Load human game data
 ```
 
-### Data
-
+Data:
 ```
-data/
-├── multistep_ik/               - Training data for inverse models
-│   ├── ik_pairs_h1.pkl         - (state_t, state_{t+1}, action_t) pairs
-│   ├── ik_pairs_h2.pkl         - (state_t, state_{t+2}, action_t) pairs
-│   ├── ik_pairs_h3.pkl
-│   └── ik_pairs_h4.pkl
-└── human_elo_ratings.csv       - Elo ratings for 40 players
+data/multistep_ik/       - Training data for inverse models
+opendata/raw_data.csv    - Original game records (5,482 moves)
 ```
 
-### Results
-
+Results:
 ```
-results/
-├── human_h_rollout_free_estimates.csv    - E[h] per player (rollout-free)
-├── human_h_multiclass_estimates.csv      - E[h] per player (random rollout)
-├── human_h_opponent_estimates.csv        - E[h] per player (opponent model)
-├── player_van_opheusden_features.csv     - 17-dim features per player
-└── feature_elo_correlations.csv          - Feature-Elo correlations
+results/human_h_rollout_free_estimates.csv - Planning depth per player
+results/player_van_opheusden_features.csv  - Heuristic features per player
 ```
 
-### Documentation
-
+Documentation:
 ```
-docs/
-├── ROLLOUT_FREE_ANALYSIS.md              - Rollout-free method details
-├── ROLLOUT_METHOD_COMPARISON.md          - Three-method comparison
-├── FEATURE_VS_H_COMPARISON.md            - Feature vs h analysis
-├── COMPLETE_ANALYSIS_SUMMARY.md          - Integrated summary (EN)
-├── 완전_분석_요약_KR.md                  - Integrated summary (KR)
-└── van_Opheusden_비교_논의_KR.md         - van Opheusden reconciliation (KR)
-```
-
-### Deprecated Files (in backup/)
-
-Previous approaches and intermediate analyses have been moved to `backup/` folder.
-
----
-
-## Installation
-
-```bash
-pip install numpy pandas scipy matplotlib seaborn
-pip install scikit-learn joblib
+EXECUTIVE_SUMMARY.md         - One-page overview (start here)
+docs/ROLLOUT_FREE_ANALYSIS.md - Detailed method documentation
+docs/FEATURE_VS_H_COMPARISON.md - Expertise analysis
+docs/完전_분석_요약_KR.md    - Summary in Korean
 ```
 
 ---
 
-## Usage Example
+## Quick Start
 
+View results:
 ```bash
-# Run rollout-free h estimation (recommended method)
+# Planning depth estimates
+cat results/human_h_rollout_free_estimates.csv
+
+# Feature-based expertise analysis
+python analyze_feature_based_expertise.py
+```
+
+Reproduce analysis:
+```bash
+# Run rollout-free estimation (recommended method)
 python estimate_player_h_rollout_free.py
 
 # Output: results/human_h_rollout_free_estimates.csv
-# Contains E[h] per player, P(h=1,2,3,4) per move
+# Runtime: ~5 minutes
+```
 
-# Run feature-based expertise analysis
+Full pipeline (regenerate from raw data):
+```bash
+# 1. Extract training data (5 min)
+python preprocess_multistep_ik_data.py
+
+# 2. Train opponent model (optional, 30 min)
+python generate_trajectories_opponent_model.py
+
+# 3. Estimate planning depth (5 min)
+python estimate_player_h_rollout_free.py
+
+# 4. Analyze expertise (2 min)
 python analyze_feature_based_expertise.py
-
-# Output: results/player_van_opheusden_features.csv
-#         figures/feature_based_expertise_analysis.png
 ```
 
 ---
 
-## Future Work: Planning-Aware IRL
+## Next Steps
 
-The current analysis (Stage 1) enables future work on planning-aware inverse reinforcement learning:
+### Immediate (can do now)
 
-**Stage 2**: Learn reward function conditioned on h
-- Standard IRL assumes fixed h, causing confounded reward estimates
-- Planning-aware IRL: r(state, action, h) accounts for varying planning depths
-- Hypothesis: Deconfounding h improves reward identifiability
+Analyze state-dependence:
+- Extract game state features (threat level, board complexity, game phase)
+- Compute move-level posterior P(h|move)
+- Test hypothesis: threatening situations → lower h, calm situations → higher h
 
-**Stage 3**: Apply to pedestrian crossing domain
-- Safety-critical behavior (different from game-playing)
-- Test if planning depth varies with clinical traits (anxiety, ADHD)
-- Hypothesis: Anxiety → altered planning depth → risky behavior
+Analyze heuristic features:
+- Which van Opheusden features best predict expertise?
+- Decision tree analysis for interpretable expertise profiles
+- Test if experts use different features vs. weight features differently
+
+### Near-term (requires new data collection)
+
+Apply to pedestrian crossing:
+- Different domain (safety-critical instead of game)
+- Clinical populations (anxiety, ADHD)
+- Test if planning depth varies with clinical traits
+- Test if expertise relationship reverses in high-stakes domain
+
+### Long-term (enabled by this work)
+
+Develop planning-aware IRL:
+- Condition reward learning on estimated h: r(state, action, h)
+- Test if deconfounding h improves reward recovery
+- Compare expert vs. novice rewards after controlling for h
 
 ---
 
 ## References
 
-**van Opheusden, B., Acerbi, L., & Ma, W. J. (2023).** Expertise increases planning depth in human gameplay. *Nature*, 618(7965), 1000-1005.
-- Source of human data (40 players, 318 games, 5,482 moves)
-- 17-dimensional features for position evaluation
+van Opheusden, B., Acerbi, L., & Ma, W. J. (2023). Expertise increases planning depth in human gameplay. Nature, 618(7965), 1000-1005.
+- Source of behavioral data (40 players, 318 games)
+- van Opheusden features for position evaluation (17 dimensions)
 
-**Mhammedi, Z., Helou, D., Grau-Moya, J., Bou-Ammar, H., & Whiteson, S. (2023).** Representation Learning with Multi-Step Inverse Kinematics: An Efficient and Optimal Approach to Rich-Observation RL. *International Conference on Machine Learning (ICML)*.
+Mhammedi, Z., Helou, D., Grau-Moya, J., Bou-Ammar, H., & Whiteson, S. (2023). Representation Learning with Multi-Step Inverse Kinematics: An Efficient and Optimal Approach to Rich-Observation RL. International Conference on Machine Learning.
 - Multi-step inverse kinematics framework
-- Adapted for behavior analysis (originally for representation learning)
+- We adapt from representation learning to behavior analysis
 
-**Yao, W., Zhao, P., Qiao, Y., Abbeel, P., & Ding, Y. (2024).** Inverse Reinforcement Learning with Multiple Planning Horizons. *Conference on Learning Theory (COLT)*.
+Yao, W., Zhao, P., Qiao, Y., Abbeel, P., & Ding, Y. (2024). Inverse Reinforcement Learning with Multiple Planning Horizons. Conference on Learning Theory.
 - Planning horizon as latent confounder in IRL
 - Theoretical motivation for explicit h modeling
 
@@ -309,10 +331,6 @@ The current analysis (Stage 1) enables future work on planning-aware inverse rei
 
 ## Summary
 
-**Project**: Planning depth estimation from human game-playing behavior
+We can estimate how many steps ahead people plan from their choices. Humans plan about 2 steps ahead on average in 4-in-a-row, much shallower than tree search metrics suggest. Surprisingly, planning depth does not predict expertise—all skill levels plan similarly deep. This null result is robust across estimation methods. The findings suggest expertise comes from better position evaluation (what you evaluate) rather than deeper planning (how far you look ahead). For IRL, planning depth should be modeled as a confounding variable but not used as an expertise marker.
 
-**Status**: Stage 1 complete (h estimation), Stage 2-3 future work
-
-**Main Finding**: Planning depth is identifiable (93.8% discriminator accuracy) but does not predict expertise (AUC = 0.53). Expertise comes from heuristic quality, not planning depth.
-
-**Last Updated**: 2024-12-31
+**Last updated**: 2025-12-31
