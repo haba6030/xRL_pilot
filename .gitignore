@@ -154,6 +154,7 @@ mlruns/
 *.bak
 *.backup
 *~
+backup/
 
 # Sensitive information (if any)
 .env
