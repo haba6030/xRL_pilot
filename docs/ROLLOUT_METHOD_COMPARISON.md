@@ -4,17 +4,17 @@
 
 ---
 
-## 📊 Summary Table
+## Summary Table
 
 | Method | Mean E[h] | Elo Correlation | Expert E[h] | Novice E[h] | Expert-Novice Diff | Paradox? |
 |--------|-----------|----------------|-------------|-------------|-------------------|----------|
-| **Random Rollout** | 2.866 ± 0.075 | r=-0.117, p=0.471 | 2.804 | 2.842 | -0.038 | ❌ Yes |
-| **Rollout-Free** | 1.777 ± 0.118 | r=-0.012, p=0.943 | 1.769 | 1.768 | +0.001 | ❌ Yes |
+| **Random Rollout** | 2.866 ± 0.075 | r=-0.117, p=0.471 | 2.804 | 2.842 | -0.038 | Yes |
+| **Rollout-Free** | 1.777 ± 0.118 | r=-0.012, p=0.943 | 1.769 | 1.768 | +0.001 | Yes |
 | **Difference** | **-1.089** | - | **-1.035** | **-1.074** | - | Both fail |
 
 ---
 
-## 🔬 Method Details
+## Method Details
 
 ### Method 1: Random Rollout (Baseline)
 
@@ -27,14 +27,14 @@
 
 **Distribution**:
 ```
-Training:  (s_t, s_{t+h}^human) → a_t
+Training: (s_t, s_{t+h}^human) → a_t
 Inference: (s_t, s_{t+h}^random) → a_t
 ```
 
 **Issues**:
-- ❌ Train/inference mismatch
-- ❌ Random futures unrealistic
-- ❌ Overestimates h (+1.09 bias)
+- Train/inference mismatch
+- Random futures unrealistic
+- Overestimates h (+1.09 bias)
 
 **Results**:
 - E[h] = 2.87 (inflated)
@@ -54,15 +54,15 @@ Inference: (s_t, s_{t+h}^random) → a_t
 
 **Distribution**:
 ```
-Training:  (s_t, s_{t+h}^human) → a_t
+Training: (s_t, s_{t+h}^human) → a_t
 Inference: (s_t, s_{t+h}^human) → a_t
 ```
 
 **Advantages**:
-- ✅ No train/inference mismatch
-- ✅ No rollout simulation needed
-- ✅ Bayesian posterior (uncertainty quantification)
-- ✅ Computationally efficient
+- No train/inference mismatch
+- No rollout simulation needed
+- Bayesian posterior (uncertainty quantification)
+- Computationally efficient
 
 **Results**:
 - E[h] = 1.78 (realistic)
@@ -82,7 +82,7 @@ Inference: (s_t, s_{t+h}^human) → a_t
 
 **Distribution**:
 ```
-Training:  (s_t, s_{t+h}^human) → a_t
+Training: (s_t, s_{t+h}^human) → a_t
 Inference: (s_t, s_{t+h}^learned) → a_t
 ```
 
@@ -95,7 +95,7 @@ Inference: (s_t, s_{t+h}^learned) → a_t
 
 ---
 
-## 📈 Detailed Results
+## Detailed Results
 
 ### E[h] Estimates by Method
 
@@ -115,10 +115,10 @@ Inference: (s_t, s_{t+h}^learned) → a_t
 
 | h | Random Rollout | Rollout-Free | Shift |
 |---|----------------|--------------|-------|
-| **h=1** | 12.8% | **47.3%** | **+34.5%** ⬆️ |
+| **h=1** | 12.8% | **47.3%** | **+34.5%** |
 | **h=2** | 22.6% | 24.0% | +1.4% |
-| **h=3** | 29.7% | 19.0% | -10.7% ⬇️ |
-| **h=4** | 34.9% | **9.7%** | **-25.2%** ⬇️ |
+| **h=3** | 29.7% | 19.0% | -10.7% |
+| **h=4** | 34.9% | **9.7%** | **-25.2%** |
 
 **Key shift**: Mass moved from h=4 → h=1 (far-sighted → myopic)
 
@@ -126,23 +126,23 @@ Inference: (s_t, s_{t+h}^learned) → a_t
 
 **Correlation with Elo**:
 ```
-Random Rollout:  r = -0.117, p = 0.471  (no correlation)
-Rollout-Free:    r = -0.012, p = 0.943  (no correlation)
+Random Rollout: r = -0.117, p = 0.471 (no correlation)
+Rollout-Free: r = -0.012, p = 0.943 (no correlation)
 ```
 
 **Group Comparison**:
 ```
-Method            Expert    Intermediate    Novice    Expert-Novice d
+Method Expert Intermediate Novice Expert-Novice d
 ----------------- --------- --------------- --------- ----------------
-Random Rollout    2.804     2.859           2.842     d = -0.034
-Rollout-Free      1.769     1.786           1.768     d =  0.006
+Random Rollout 2.804 2.859 2.842 d = -0.034
+Rollout-Free 1.769 1.786 1.768 d = 0.006
 
-Both methods:     NO SIGNIFICANT DIFFERENCE (p > 0.05)
+Both methods: NO SIGNIFICANT DIFFERENCE (p > 0.05)
 ```
 
 ---
 
-## 🎯 Key Insights
+## Key Insights
 
 ### 1. Rollout Artifact is Massive
 
@@ -181,9 +181,9 @@ Random rollout creates unrealistic futures
 **Finding**: Both methods fail to discriminate expertise
 
 **Implications**:
-1. ❌ Planning depth h is NOT the expertise variable
-2. ✅ Artifact removal does NOT fix the paradox
-3. ✅ Need different approach to explain expertise
+1. Planning depth h is NOT the expertise variable
+2. Artifact removal does NOT fix the paradox
+3. Need different approach to explain expertise
 
 **Consistency check**:
 - van Opheusden: Expert PV depth LOWER than novice (efficient planning)
@@ -240,45 +240,45 @@ Rollout-free (1.78) < Opponent-model (?) < Random (2.87)
 
 ---
 
-## 🔮 Recommendations
+## Recommendations
 
 ### For This Project
 
-1. ✅ **Use rollout-free as primary method**
-   - Most accurate h estimates
-   - No distribution mismatch
-   - Computationally efficient
+1. **Use rollout-free as primary method**
+ - Most accurate h estimates
+ - No distribution mismatch
+ - Computationally efficient
 
 2. 📋 **Do NOT pursue h as expertise predictor**
-   - Robust null result across methods
-   - Inconsistent with van Opheusden findings
-   - Focus on feature-based analysis instead
+ - Robust null result across methods
+ - Inconsistent with van Opheusden findings
+ - Focus on feature-based analysis instead
 
 3. 📋 **Implement opponent model for comparison**
-   - Validates rollout-free advantage
-   - Shows intermediate bias level
-   - Publishable method comparison
+ - Validates rollout-free advantage
+ - Shows intermediate bias level
+ - Publishable method comparison
 
 ### For Future Work
 
 1. **Always match train/inference distributions**
-   - Use rollout-free when futures are in data
-   - Use learned opponent when simulating
-   - Avoid random rollout for human behavior
+ - Use rollout-free when futures are in data
+ - Use learned opponent when simulating
+ - Avoid random rollout for human behavior
 
 2. **Consider h as nuisance variable, not target**
-   - Control for h in expertise analysis
-   - Don't expect h to predict skill
-   - Focus on heuristic quality instead
+ - Control for h in expertise analysis
+ - Don't expect h to predict skill
+ - Focus on heuristic quality instead
 
 3. **Validate with parameter recovery**
-   - Test on synthetic data with known h
-   - Measure bias and variance
-   - Report method comparisons
+ - Test on synthetic data with known h
+ - Measure bias and variance
+ - Report method comparisons
 
 ---
 
-## 📊 Figure Summary
+## Figure Summary
 
 ### Figure 1: E[h] Distribution
 
@@ -328,7 +328,7 @@ Rollout-free (1.78) < Opponent-model (?) < Random (2.87)
 
 ---
 
-## 📝 Conclusions
+## Conclusions
 
 1. **Rollout-free method is superior** for human h estimation
 2. **Humans plan myopically** (E[h] ≈ 1.8, not 2.9)

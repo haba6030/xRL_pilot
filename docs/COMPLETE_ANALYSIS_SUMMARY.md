@@ -6,17 +6,17 @@
 
 ---
 
-## 🎯 Core Research Question
+## Core Research Question
 
 **Can planning depth h identify expertise in 4-in-a-row gameplay?**
 
-**Answer**: ❌ **NO** - Planning depth is identifiable but orthogonal to expertise
+**Answer**: No - Planning depth is identifiable but orthogonal to expertise
 
-**Alternative**: ✅ **YES** - Van Opheusden features (heuristic quality) predict expertise
+**Alternative**: Yes - Van Opheusden features (heuristic quality) predict expertise
 
 ---
 
-## 📊 Complete Results Matrix
+## Complete Results Matrix
 
 ### Method Comparison: h Estimation
 
@@ -34,14 +34,14 @@
 
 | Method | Dimension | Individual r | Combined AUC | Interpretation |
 |--------|-----------|-------------|--------------|----------------|
-| **van Opheusden Features** | 17-dim | 0.035 (mean) | **0.84** ⭐ | **STRONG predictor** |
+| **van Opheusden Features** | 17-dim | 0.035 (mean) | **0.84** | Strong predictor |
 | **Planning Depth h** | 1-dim | 0.012 | 0.53 | Chance level |
 
 **Conclusion**: Features predict expertise, h does not
 
 ---
 
-## 🔬 Key Findings
+## Key Findings
 
 ### Finding 1: Rollout Method Matters Enormously
 
@@ -52,8 +52,8 @@
 
 **Distribution Shift**:
 ```
-Random Rollout:  P(h=1)=13%,  P(h=2)=23%, P(h=3)=30%, P(h=4)=35%
-Rollout-Free:    P(h=1)=47%, P(h=2)=24%, P(h=3)=19%, P(h=4)=10%
+Random Rollout: P(h=1)=13%, P(h=2)=23%, P(h=3)=30%, P(h=4)=35%
+Rollout-Free: P(h=1)=47%, P(h=2)=24%, P(h=3)=19%, P(h=4)=10%
 
 Shift: Massive transfer from h=4 → h=1
 ```
@@ -76,8 +76,8 @@ Shift: Massive transfer from h=4 → h=1
 
 **Comparison with van Opheusden PV depth**:
 ```
-van Opheusden PV depth:  6-7 steps (search tree exploration)
-Our behavioral h:        1.8 steps (decision-relevant horizon)
+van Opheusden PV depth: 6-7 steps (search tree exploration)
+Our behavioral h: 1.8 steps (decision-relevant horizon)
 
 Difference: 4-5 steps
 
@@ -108,7 +108,7 @@ Interpretation: Humans EXPLORE deeply but DECIDE locally
 **Comparison with h**:
 ```
 Features: AUC = 0.840 (strong discrimination)
-h:        AUC = 0.530 (chance level)
+h: AUC = 0.530 (chance level)
 
 Difference: +0.310 (58.5% improvement)
 ```
@@ -117,7 +117,7 @@ Difference: +0.310 (58.5% improvement)
 
 ---
 
-## 💡 Theoretical Integration
+## Theoretical Integration
 
 ### Van Opheusden (2023) Reconciliation
 
@@ -131,13 +131,13 @@ Difference: +0.310 (58.5% improvement)
 
 **Resolution**: **PV depth ≠ behavioral h**
 ```
-PV depth:    Search tree exploration metric
-             Measures computational effort
-             Lower for experts (efficient pruning) ✅
+PV depth: Search tree exploration metric
+ Measures computational effort
+ Lower for experts (efficient pruning) 
 
 Behavioral h: Decision-relevant lookahead
-              Measures action horizon
-              Same across skill levels ✅
+ Measures action horizon
+ Same across skill levels 
 
 Both correct: Different constructs!
 ```
@@ -168,7 +168,7 @@ High-quality heuristics + Shallow search (efficient)
 
 ---
 
-## 📈 Practical Implications
+## Practical Implications
 
 ### For Planning-Aware IRL
 
@@ -184,10 +184,10 @@ expertise = predict_from_features(van_opheusden_features)
 **DON'T**:
 ```python
 # Don't use h for expertise prediction
-expertise = predict_from_h(h_estimate)  # ❌ AUC = 0.53
+expertise = predict_from_h(h_estimate) # AUC = 0.53
 
 # Don't conflate PV depth with h
-h_estimate = PV_depth  # ❌ Different constructs
+h_estimate = PV_depth # Different constructs
 ```
 
 ---
@@ -195,38 +195,38 @@ h_estimate = PV_depth  # ❌ Different constructs
 ### For Cognitive Modeling
 
 **Validated**:
-- ✅ van Opheusden features capture expertise
-- ✅ PV depth measures search efficiency
-- ✅ Experts have lower PV depth (efficient)
+- van Opheusden features capture expertise
+- PV depth measures search efficiency
+- Experts have lower PV depth (efficient)
 
 **New insights**:
-- ✅ Behavioral h ≈ 1.8 (myopic planning)
-- ✅ h is same across skill levels
-- ✅ Expertise is multivariate heuristic pattern
+- Behavioral h ≈ 1.8 (myopic planning)
+- h is same across skill levels
+- Expertise is multivariate heuristic pattern
 
 ---
 
 ### For Method Development
 
 **Rollout-free posterior**:
-- ✅ Eliminates distribution mismatch
-- ✅ Unbiased h estimates (-1.09 bias removed)
-- ✅ Computationally efficient
-- ✅ Bayesian uncertainty quantification
+- Eliminates distribution mismatch
+- Unbiased h estimates (-1.09 bias removed)
+- Computationally efficient
+- Bayesian uncertainty quantification
 
 **When to use**:
-- Human data with observable futures ✅
-- Need accurate h estimation ✅
-- Avoid simulation artifacts ✅
+- Human data with observable futures 
+- Need accurate h estimation 
+- Avoid simulation artifacts 
 
 **When NOT to use**:
-- Off-policy evaluation ❌
-- Hypothetical futures ❌
-- Real-time novel situations ❌
+- Off-policy evaluation 
+- Hypothetical futures 
+- Real-time novel situations 
 
 ---
 
-## 🎓 Publication Strategy
+## Publication Strategy
 
 ### Paper 1: Method Comparison (Workshop)
 
@@ -260,13 +260,13 @@ h_estimate = PV_depth  # ❌ Different constructs
 
 ---
 
-## 🔮 Next Steps
+## Next Steps
 
 ### Immediate (1 week)
 
-1. ✅ **Fix opponent model bug** (env.done → env.is_done())
-2. ✅ **Complete opponent model rollout**
-3. ✅ **Compare three methods** (random / opponent / rollout-free)
+1. **Fix opponent model bug** (env.done → env.is_done())
+2. **Complete opponent model rollout**
+3. **Compare three methods** (random / opponent / rollout-free)
 
 **Expected result**: E[h] between 1.78 and 2.87
 
@@ -275,92 +275,92 @@ h_estimate = PV_depth  # ❌ Different constructs
 ### Short-term (2-3 weeks)
 
 1. **Context-dependent h analysis**
-   - Move-level h vs game state features
-   - Threat level, board density, time pressure
-   - Test: High threat → higher h?
+ - Move-level h vs game state features
+ - Threat level, board density, time pressure
+ - Test: High threat → higher h?
 
 2. **Feature importance analysis**
-   - Which feature combinations predict expertise?
-   - Decision tree / random forest
-   - Interpretable expertise profile
+ - Which feature combinations predict expertise?
+ - Decision tree / random forest
+ - Interpretable expertise profile
 
 3. **Method comparison paper draft**
-   - Rollout-free method description
-   - Artifact demonstration
-   - Human myopic planning finding
+ - Rollout-free method description
+ - Artifact demonstration
+ - Human myopic planning finding
 
 ---
 
 ### Medium-term (1-2 months)
 
 1. **Full Planning-Aware IRL paper**
-   - Complete analysis integration
-   - Theoretical framework
-   - van Opheusden reconciliation
+ - Complete analysis integration
+ - Theoretical framework
+ - van Opheusden reconciliation
 
 2. **Pedestrian crossing application**
-   - Apply rollout-free method
-   - Test h-expertise relationship in new domain
-   - Generalization validation
+ - Apply rollout-free method
+ - Test h-expertise relationship in new domain
+ - Generalization validation
 
 ---
 
-## 📁 Complete File Index
+## Complete File Index
 
 ### Documentation
 ```
 docs/
-├── ROLLOUT_FREE_ANALYSIS.md           # Rollout-free method details
-├── ROLLOUT_METHOD_COMPARISON.md       # Three-method comparison
-├── ROLLOUT_COMPARISON_SUMMARY.md      # Executive summary
-├── FEATURE_VS_H_COMPARISON.md         # Feature vs h analysis
-└── COMPLETE_ANALYSIS_SUMMARY.md       # This file (integration)
+├── ROLLOUT_FREE_ANALYSIS.md # Rollout-free method details
+├── ROLLOUT_METHOD_COMPARISON.md # Three-method comparison
+├── ROLLOUT_COMPARISON_SUMMARY.md # Executive summary
+├── FEATURE_VS_H_COMPARISON.md # Feature vs h analysis
+└── COMPLETE_ANALYSIS_SUMMARY.md # This file (integration)
 ```
 
 ### Code
 ```
 fourinarow_airl/
-├── estimate_player_h_rollout_free.py       # Rollout-free implementation ✅
-├── estimate_player_h_multiclass.py         # Random rollout implementation ✅
+├── estimate_player_h_rollout_free.py # Rollout-free implementation 
+├── estimate_player_h_multiclass.py # Random rollout implementation 
 ├── generate_trajectories_opponent_model.py # Opponent model (in progress)
-└── analyze_feature_based_expertise.py      # Feature-based analysis ✅
+└── analyze_feature_based_expertise.py # Feature-based analysis 
 ```
 
 ### Results
 ```
 results/
-├── human_h_rollout_free_estimates.csv      # Rollout-free h estimates
-├── human_h_multiclass_estimates.csv        # Random rollout h estimates
-├── player_van_opheusden_features.csv       # 17-dim features per player
-└── feature_elo_correlations.csv            # Feature-Elo correlations
+├── human_h_rollout_free_estimates.csv # Rollout-free h estimates
+├── human_h_multiclass_estimates.csv # Random rollout h estimates
+├── player_van_opheusden_features.csv # 17-dim features per player
+└── feature_elo_correlations.csv # Feature-Elo correlations
 ```
 
 ### Figures
 ```
 figures/
-├── rollout_free_posterior_results.png      # Rollout-free analysis (4 subplots)
-├── multiclass_discriminator_results.png    # Random rollout discriminator
-└── feature_based_expertise_analysis.png    # Feature vs h comparison (6 subplots)
+├── rollout_free_posterior_results.png # Rollout-free analysis (4 subplots)
+├── multiclass_discriminator_results.png # Random rollout discriminator
+└── feature_based_expertise_analysis.png # Feature vs h comparison (6 subplots)
 ```
 
 ---
 
-## 📊 Final Summary Table
+## Final Summary Table
 
 | Analysis | Method | Result | Status | Conclusion |
 |----------|--------|--------|--------|------------|
-| **h Estimation** | Random rollout | E[h]=2.87, +1.09 bias | ✅ Complete | Artifact |
-| **h Estimation** | Rollout-free | E[h]=1.78, unbiased | ✅ Complete | **Accurate** |
-| **h Estimation** | Opponent model | TBD | 🔄 In progress | TBD |
-| **Expertise from h** | All methods | AUC ≈ 0.53 (chance) | ✅ Complete | **h ≠ expertise** |
-| **Expertise from features** | van Opheusden | AUC = 0.84 | ✅ Complete | **Features work!** |
+| **h Estimation** | Random rollout | E[h]=2.87, +1.09 bias | Complete | Artifact |
+| **h Estimation** | Rollout-free | E[h]=1.78, unbiased | Complete | **Accurate** |
+| **h Estimation** | Opponent model | TBD | In progress | TBD |
+| **Expertise from h** | All methods | AUC ≈ 0.53 (chance) | Complete | **h ≠ expertise** |
+| **Expertise from features** | van Opheusden | AUC = 0.84 | Complete | **Features work!** |
 
 **Overall conclusion**: 
-- ✅ h is identifiable (93.8% discriminator accuracy)
-- ✅ Rollout-free is best method (no artifact)
-- ✅ Humans plan myopically (h ≈ 1.8)
-- ❌ h does NOT predict expertise (robust null)
-- ✅ Features DO predict expertise (AUC = 0.84)
+- h is identifiable (93.8% discriminator accuracy)
+- Rollout-free is best method (no artifact)
+- Humans plan myopically (h ≈ 1.8)
+- h does NOT predict expertise (robust null)
+- Features DO predict expertise (AUC = 0.84)
 
 **Main insight**: **Expertise = heuristic quality, not planning depth**
 

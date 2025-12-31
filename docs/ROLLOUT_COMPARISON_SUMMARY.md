@@ -4,7 +4,7 @@
 
 ---
 
-## 📚 Document Index
+## Document Index
 
 This directory contains complete analysis of rollout methods for planning depth estimation:
 
@@ -14,7 +14,7 @@ This directory contains complete analysis of rollout methods for planning depth 
 
 ---
 
-## 🎯 Executive Summary
+## Executive Summary
 
 ### Research Question
 **Can we accurately estimate human planning depth h from behavioral data?**
@@ -23,9 +23,9 @@ This directory contains complete analysis of rollout methods for planning depth 
 
 | Method | Train Distribution | Inference Distribution | Bias | E[h] | Status |
 |--------|-------------------|----------------------|------|------|--------|
-| **Random Rollout** | (s_t, s_{t+h}^human) | (s_t, s_{t+h}^random) | +1.09 | 2.87 | ✅ Complete |
-| **Rollout-Free** | (s_t, s_{t+h}^human) | (s_t, s_{t+h}^human) | None | 1.78 | ✅ Complete |
-| **Opponent Model** | (s_t, s_{t+h}^human) | (s_t, s_{t+h}^learned) | ? | ? | 🔄 In Progress |
+| **Random Rollout** | (s_t, s_{t+h}^human) | (s_t, s_{t+h}^random) | +1.09 | 2.87 | Complete |
+| **Rollout-Free** | (s_t, s_{t+h}^human) | (s_t, s_{t+h}^human) | None | 1.78 | Complete |
+| **Opponent Model** | (s_t, s_{t+h}^human) | (s_t, s_{t+h}^learned) | ? | ? | In Progress |
 
 ### Key Findings
 
@@ -45,16 +45,16 @@ P(h=4) = 9.7% (far-sighted planning is rare)
 
 **3. Planning Depth Does NOT Predict Expertise**
 ```
-Random Rollout:  r(Elo, E[h]) = -0.12, p = 0.47
-Rollout-Free:    r(Elo, E[h]) = -0.01, p = 0.94
-Both methods:    Expert h ≈ Novice h (no difference)
+Random Rollout: r(Elo, E[h]) = -0.12, p = 0.47
+Rollout-Free: r(Elo, E[h]) = -0.01, p = 0.94
+Both methods: Expert h ≈ Novice h (no difference)
 ```
 
 **Conclusion**: Expertise is about **heuristic quality**, not planning depth
 
 ---
 
-## 🔬 Method Comparison Details
+## Method Comparison Details
 
 ### Method 1: Random Rollout (Baseline)
 
@@ -66,8 +66,8 @@ model_h = train(train_pairs)
 
 # Inference (MISMATCH!)
 for action in legal_actions:
-    future = simulate_random_rollout(h_steps)  # ❌ Random!
-    score = model_h.predict(s_t, future)
+ future = simulate_random_rollout(h_steps) # Random!
+ score = model_h.predict(s_t, future)
 
 # Problem: future is random, not human-like
 ```
@@ -78,9 +78,9 @@ for action in legal_actions:
 - No expertise discrimination
 
 **Issues**:
-- ❌ Distribution mismatch between train/inference
-- ❌ Random futures are unrealistic
-- ❌ Systematic overestimation bias
+- Distribution mismatch between train/inference
+- Random futures are unrealistic
+- Systematic overestimation bias
 
 ---
 
@@ -94,12 +94,12 @@ model_h = train(train_pairs)
 
 # Inference (NO ROLLOUT!)
 for move_t in human_games:
-    actual_futures = extract_real_futures(move_t, h=[1,2,3,4])
-    for h in [1,2,3,4]:
-        likelihood[h] = model_h.predict_proba(s_t, actual_futures[h], a_t)
+ actual_futures = extract_real_futures(move_t, h=[1,2,3,4])
+ for h in [1,2,3,4]:
+ likelihood[h] = model_h.predict_proba(s_t, actual_futures[h], a_t)
 
-    # Bayesian posterior
-    P(h|t) = softmax(log(likelihood) + log(prior))
+ # Bayesian posterior
+ P(h|t) = softmax(log(likelihood) + log(prior))
 
 E[h] = mean over all moves
 ```
@@ -110,10 +110,10 @@ E[h] = mean over all moves
 - No expertise discrimination
 
 **Advantages**:
-- ✅ No distribution mismatch (uses real futures)
-- ✅ No rollout simulation needed
-- ✅ Bayesian posterior (uncertainty quantification)
-- ✅ Unbiased estimates
+- No distribution mismatch (uses real futures)
+- No rollout simulation needed
+- Bayesian posterior (uncertainty quantification)
+- Unbiased estimates
 
 ---
 
@@ -130,8 +130,8 @@ opponent_policy = train_on_human_games(features)
 
 # Inference (LEARNED ROLLOUT)
 for action in legal_actions:
-    future = simulate_opponent_rollout(h_steps, opponent_policy)  # 🔄 Learned!
-    score = model_h.predict(s_t, future)
+ future = simulate_opponent_rollout(h_steps, opponent_policy) # Learned!
+ score = model_h.predict(s_t, future)
 ```
 
 **Expected Results**:
@@ -143,7 +143,7 @@ for action in legal_actions:
 
 ---
 
-## 📊 Comparison Matrix
+## Comparison Matrix
 
 | Metric | Random Rollout | Rollout-Free | Opponent Model | Winner |
 |--------|----------------|--------------|----------------|--------|
@@ -158,7 +158,7 @@ for action in legal_actions:
 
 ---
 
-## 🎓 Theoretical Implications
+## Theoretical Implications
 
 ### Finding 1: Distribution Mismatch Creates Systematic Bias
 
@@ -188,9 +188,9 @@ Random rollout explores diverse, unlikely futures
 
 **Comparison with van Opheusden (2023)**:
 ```
-van Opheusden PV depth:     6-7 steps
-Our h estimate:             1.8 steps
-Difference:                 4-5 steps
+van Opheusden PV depth: 6-7 steps
+Our h estimate: 1.8 steps
+Difference: 4-5 steps
 
 Interpretation: PV depth ≠ decision-relevant planning depth
 ```
@@ -264,7 +264,7 @@ Relationship: PV_depth ≠ h_behavior
 **Testable prediction**:
 - van Opheusden features (pruning, iterations) should correlate with expertise
 - Our h should NOT correlate with expertise
-- ✅ Confirmed in our data
+- Confirmed in our data
 
 ---
 
@@ -300,7 +300,7 @@ Random (2.87) > Opponent (?) > Rollout-Free (1.78)
 **Expected outcome**:
 ```
 Feature correlation with Elo: STRONG (r > 0.5)
-h correlation with Elo:       NONE   (r ≈ 0)
+h correlation with Elo: NONE (r ≈ 0)
 
 Conclusion: Features predict expertise, h does not
 ```
@@ -321,9 +321,9 @@ Conclusion: Features predict expertise, h does not
 **Method**:
 1. Compute move-level h posteriors (already done)
 2. Analyze h vs game state features:
-   - Board density (early vs late game)
-   - Threat level (defensive vs offensive)
-   - Time pressure (if available)
+ - Board density (early vs late game)
+ - Threat level (defensive vs offensive)
+ - Time pressure (if available)
 3. Test: h increases with threat level?
 
 **Expected outcome**:
@@ -335,7 +335,7 @@ Conclusion: Features predict expertise, h does not
 
 ---
 
-## 📊 Publication Strategy
+## Publication Strategy
 
 ### Paper 1: Method Comparison (Short)
 
@@ -368,15 +368,15 @@ Conclusion: Features predict expertise, h does not
 
 ---
 
-## 🎯 Key Takeaways
+## Key Takeaways
 
 ### For This Project
 
-1. ✅ **Rollout-free method is correct** for h estimation
-2. ✅ **Humans plan myopically** (E[h] ≈ 1.8)
-3. ✅ **h does NOT predict expertise** (robust null result)
-4. 🔄 **Need feature-based analysis** to explain expertise
-5. 🔄 **Opponent model rollout** for complete comparison
+1. **Rollout-free method is correct** for h estimation
+2. **Humans plan myopically** (E[h] ≈ 1.8)
+3. **h does NOT predict expertise** (robust null result)
+4. **Need feature-based analysis** to explain expertise
+5. **Opponent model rollout** for complete comparison
 
 ### For IRL Theory
 
@@ -394,28 +394,28 @@ Conclusion: Features predict expertise, h does not
 
 ---
 
-## 📁 Repository Organization
+## Repository Organization
 
 ```
 fourinarow_airl/
 ├── docs/
-│   ├── ROLLOUT_FREE_ANALYSIS.md           # Rollout-free method details
-│   ├── ROLLOUT_METHOD_COMPARISON.md       # Three-method comparison
-│   └── ROLLOUT_COMPARISON_SUMMARY.md      # This file (executive summary)
+│ ├── ROLLOUT_FREE_ANALYSIS.md # Rollout-free method details
+│ ├── ROLLOUT_METHOD_COMPARISON.md # Three-method comparison
+│ └── ROLLOUT_COMPARISON_SUMMARY.md # This file (executive summary)
 │
-├── estimate_player_h_rollout_free.py      # Rollout-free implementation
-├── estimate_player_h_multiclass.py        # Random rollout implementation
-├── estimate_player_h_opponent_model.py    # Opponent model (TBD)
+├── estimate_player_h_rollout_free.py # Rollout-free implementation
+├── estimate_player_h_multiclass.py # Random rollout implementation
+├── estimate_player_h_opponent_model.py # Opponent model (TBD)
 │
 ├── results/
-│   ├── human_h_rollout_free_estimates.csv
-│   ├── human_h_multiclass_estimates.csv
-│   └── human_h_opponent_model_estimates.csv  # TBD
+│ ├── human_h_rollout_free_estimates.csv
+│ ├── human_h_multiclass_estimates.csv
+│ └── human_h_opponent_model_estimates.csv # TBD
 │
 └── figures/
-    ├── rollout_free_posterior_results.png
-    ├── multiclass_discriminator_results.png
-    └── rollout_method_comparison.png         # TBD
+ ├── rollout_free_posterior_results.png
+ ├── multiclass_discriminator_results.png
+ └── rollout_method_comparison.png # TBD
 ```
 
 ---

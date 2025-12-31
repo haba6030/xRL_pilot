@@ -4,7 +4,7 @@
 
 ---
 
-## 🎯 Research Question
+## Research Question
 
 **What predicts expertise in 4-in-a-row: planning depth h or heuristic features?**
 
@@ -30,23 +30,23 @@ Measure: AUC for expert classification + Elo correlation
 
 ---
 
-## 📊 Key Results
+## Key Results
 
 ### Summary Table
 
 | Metric | Feature-Based | h-Based | Winner |
 |--------|--------------|---------|--------|
-| **AUC (Expertise)** | 0.840 | 0.530 | Features ✅ |
-| **Accuracy** | 77.5% | 75.0% | Features ✅ |
+| **AUC (Expertise)** | 0.840 | 0.530 | Features |
+| **Accuracy** | 77.5% | 75.0% | Features |
 | **Mean \|r\| with Elo** | 0.035 | 0.012 | Both weak |
 | **Significant predictors** | 0/17 individual | 0/1 | Neither |
-| **Multivariate pattern** | **STRONG** | Chance level | Features ✅ |
+| **Multivariate pattern** | **STRONG** | Chance level | Features |
 
 **KEY FINDING**: Features are **58.5% better** than h for expertise prediction (AUC: 0.840 vs 0.530)
 
 ---
 
-## 🔬 Detailed Analysis
+## Detailed Analysis
 
 ### 1. Individual Feature Correlations with Elo
 
@@ -56,13 +56,13 @@ Measure: AUC for expert classification + Elo correlation
 
 | Rank | Feature | r (Elo) | p-value | Significant? |
 |------|---------|---------|---------|--------------|
-| 1 | 4-in-a-row horizontal | -0.244 | 0.130 | ❌ No |
-| 2 | Connected 2-in-a-row diag1 | +0.054 | 0.742 | ❌ No |
-| 3 | 3-in-a-row diag1 | +0.049 | 0.765 | ❌ No |
-| 4 | 4-in-a-row vertical | -0.035 | 0.831 | ❌ No |
-| 5 | 4-in-a-row diag2 | +0.033 | 0.840 | ❌ No |
+| 1 | 4-in-a-row horizontal | -0.244 | 0.130 | No |
+| 2 | Connected 2-in-a-row diag1 | +0.054 | 0.742 | No |
+| 3 | 3-in-a-row diag1 | +0.049 | 0.765 | No |
+| 4 | 4-in-a-row vertical | -0.035 | 0.831 | No |
+| 5 | 4-in-a-row diag2 | +0.033 | 0.840 | No |
 | ... | ... | ... | ... | ... |
-| 17 | Center control | +0.015 | 0.925 | ❌ No |
+| 17 | Center control | +0.015 | 0.925 | No |
 
 **Statistics**:
 - Significant features (p < 0.05): **0 / 17**
@@ -112,14 +112,14 @@ Measure: AUC for expert classification + Elo correlation
 **Statistical interpretation**:
 ```
 Features: Strong discriminator (AUC >> 0.5)
-h:        Random classifier (AUC ≈ 0.5)
+h: Random classifier (AUC ≈ 0.5)
 ```
 
 **Practical interpretation**:
 ```
 If you want to predict expertise:
-- Use features → 84% AUC ✅
-- Use h → flip a coin (53% AUC) ❌
+- Use features → 84% AUC 
+- Use h → flip a coin (53% AUC) 
 ```
 
 ---
@@ -132,8 +132,8 @@ If you want to predict expertise:
 
 **Evidence**:
 - Expert PV depth: 6.23 ± 1.30 steps
-- Novice PV depth: 7.29 ± 0.55 steps  
-- Correlation: r = -0.50, p < 0.01 ⭐
+- Novice PV depth: 7.29 ± 0.55 steps 
+- Correlation: r = -0.50, p < 0.01 
 
 **Their interpretation**: Experts plan MORE EFFICIENTLY (shallower search)
 
@@ -154,12 +154,12 @@ If you want to predict expertise:
 PV depth (van Opheusden):
 - Search tree exploration metric
 - Measures computational effort
-- Lower for experts (efficient pruning) ✅
+- Lower for experts (efficient pruning) 
 
 Planning depth h (our work):
 - Behavioral decision horizon
 - Measures lookahead in actions
-- Same across skill levels ✅
+- Same across skill levels 
 
 Relationship: PV_depth ≠ h_behavior
 ```
@@ -171,7 +171,7 @@ Relationship: PV_depth ≠ h_behavior
 
 ---
 
-## 💡 Theoretical Implications
+## Theoretical Implications
 
 ### Finding 1: Expertise is Multivariate Heuristic Pattern
 
@@ -183,7 +183,7 @@ Relationship: PV_depth ≠ h_behavior
 ```
 Novice: Poor heuristics across the board
 Expert: BALANCED high-quality heuristics
-        (no single "magic feature")
+ (no single "magic feature")
 ```
 
 **Analogy**: Chess expertise
@@ -202,10 +202,10 @@ Expert: BALANCED high-quality heuristics
 **Implications for IRL**:
 ```
 h should be:
-✅ Modeled explicitly (identifiable)
-✅ Controlled as confounder
-❌ Used as expertise predictor
-❌ Interpreted as skill measure
+ Modeled explicitly (identifiable)
+ Controlled as confounder
+ Used as expertise predictor
+ Interpreted as skill measure
 ```
 
 ---
@@ -225,7 +225,7 @@ h should be:
 
 ---
 
-## 📈 Comparison with All Three Methods
+## Comparison with All Three Methods
 
 ### E[h] Estimates
 
@@ -233,7 +233,7 @@ h should be:
 |--------|-----------|-------------|-------------|-----------------|---------------|
 | Random Rollout | 2.87 ± 0.08 | 2.80 | 2.84 | -0.12 (ns) | ~0.53 |
 | Rollout-Free | 1.78 ± 0.12 | 1.77 | 1.77 | -0.01 (ns) | **0.53** |
-| Features (17-dim) | N/A | N/A | N/A | 0.035 (ns) | **0.84** ⭐ |
+| Features (17-dim) | N/A | N/A | N/A | 0.035 (ns) | **0.84** |
 
 **Conclusion**: 
 - h is consistent across methods (no expertise signal)
@@ -246,23 +246,23 @@ h should be:
 **Feature-based model**:
 ```python
 Expertise = f(
-    center_control,
-    connected_2_horizontal, connected_2_vertical, ...,
-    3_horizontal, 3_vertical, ...,
-    4_horizontal, 4_vertical, ...
+ center_control,
+ connected_2_horizontal, connected_2_vertical, ...,
+ 3_horizontal, 3_vertical, ...,
+ 4_horizontal, 4_vertical, ...
 )
-→ AUC = 0.840 ✅
+→ AUC = 0.840 
 ```
 
 **h-based model**:
 ```python
 Expertise = f(E[h])
-→ AUC = 0.530 ❌ (chance)
+→ AUC = 0.530 (chance)
 ```
 
 ---
 
-## 🎯 Practical Implications
+## Practical Implications
 
 ### For Cognitive Modeling
 
@@ -286,15 +286,15 @@ Expertise = f(E[h])
 reward_function = learn_reward(behavior, h_explicit)
 # h is modeled, but not interpreted as skill
 
-# INCORRECT approach  
+# INCORRECT approach 
 expertise = predict_from_h(h_estimate)
 # h doesn't predict expertise!
 ```
 
 **Recommendation**:
-- Model h as latent confounder ✅
-- Don't use h for expertise classification ❌
-- Use feature-based models for skill prediction ✅
+- Model h as latent confounder 
+- Don't use h for expertise classification 
+- Use feature-based models for skill prediction 
 
 ---
 
@@ -321,44 +321,44 @@ expertise = predict_from_h(h_estimate)
 
 ### Main Findings
 
-1. ✅ **Features predict expertise** (AUC = 0.840)
-2. ❌ **h does NOT predict expertise** (AUC = 0.530, chance level)
-3. ✅ **Multivariate pattern matters** (no single magic feature)
-4. ✅ **Van Opheusden hypothesis confirmed** (heuristic quality > planning depth)
+1. **Features predict expertise** (AUC = 0.840)
+2. **h does NOT predict expertise** (AUC = 0.530, chance level)
+3. **Multivariate pattern matters** (no single magic feature)
+4. **Van Opheusden hypothesis confirmed** (heuristic quality > planning depth)
 
 ### Theoretical Contributions
 
 1. **h is identifiable but not meaningful for expertise**
-   - Can be measured accurately (93.8% discriminator accuracy)
-   - Doesn't predict skill (r ≈ 0 with Elo)
+ - Can be measured accurately (93.8% discriminator accuracy)
+ - Doesn't predict skill (r ≈ 0 with Elo)
 
 2. **Expertise is multivariate heuristic pattern**
-   - No single feature predicts (all |r| < 0.25)
-   - Combined features predict strongly (AUC = 0.84)
+ - No single feature predicts (all |r| < 0.25)
+ - Combined features predict strongly (AUC = 0.84)
 
 3. **PV depth ≠ behavioral planning depth**
-   - van Opheusden PV: 6-7 steps (search effort)
-   - Our h: 1.8 steps (decision horizon)
-   - Different constructs, both valid
+ - van Opheusden PV: 6-7 steps (search effort)
+ - Our h: 1.8 steps (decision horizon)
+ - Different constructs, both valid
 
 ### Methodological Lessons
 
 1. **Always test multivariate patterns**
-   - Univariate correlations can be misleading
-   - Expertise often requires balanced skills
+ - Univariate correlations can be misleading
+ - Expertise often requires balanced skills
 
 2. **Distinguish search from decision**
-   - Search depth (PV): computational effort
-   - Decision horizon (h): behavioral lookahead
-   - Don't conflate the two
+ - Search depth (PV): computational effort
+ - Decision horizon (h): behavioral lookahead
+ - Don't conflate the two
 
 3. **Negative results are informative**
-   - h doesn't predict expertise → rules out theory
-   - Guides future research (focus on heuristics)
+ - h doesn't predict expertise → rules out theory
+ - Guides future research (focus on heuristics)
 
 ---
 
-## 📁 Files
+## Files
 
 - `analyze_feature_based_expertise.py`: Implementation
 - `results/player_van_opheusden_features.csv`: Per-player features (17-dim)
@@ -367,7 +367,7 @@ expertise = predict_from_h(h_estimate)
 
 ---
 
-## 📚 References
+## References
 
 **van Opheusden, B., et al. (2023)**. Expertise increases planning depth in human gameplay. *Nature*, 618, 1000-1005.
 - Evidence for heuristic-based expertise
