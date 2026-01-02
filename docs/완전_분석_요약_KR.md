@@ -1,338 +1,144 @@
-# 완전 분석 요약: Planning Depth vs Expertise
-
-**3가지 방법 + Feature-based 분석 종합 비교**
+# 통합 분석: Planning Depth와 Expertise
 
 **날짜**: 2025-12-29
 
----
+이 문서는 세 가지 h 추정 방법(random rollout, rollout-free, opponent model)의 결과를 통합하고, planning depth와 van Opheusden의 heuristic features를 전문성 예측 측면에서 비교합니다.
 
-## 핵심 연구 질문
+## 핵심 질문
 
-**4-in-a-row 게임에서 planning depth h가 전문성을 식별할 수 있는가?**
+4-in-a-row 게임에서 planning depth h가 전문성을 식별할 수 있는가?
 
-**답**: **아니오** - Planning depth는 식별 가능하지만 전문성과 무관함
+답변: 아니오. Planning depth는 행동으로부터 식별 가능하지만 전문성과는 무관합니다. Van Opheusden의 heuristic features (17차원 보드 평가 지표)는 84% AUC로 전문성을 예측하는 반면, planning depth는 chance level (53% AUC)입니다.
 
-**대안**: **예** - Van Opheusden features (heuristic 품질)가 전문성을 예측함
+## 완전 결과
 
----
-
-## 완전 결과 매트릭스
-
-### 방법 비교: h 추정
+h 추정 방법 비교:
 
 | 방법 | 평균 E[h] | Expert h | Novice h | Elo 상관 | 승률 상관 | Expertise AUC |
 |------|-----------|----------|----------|----------|-----------|---------------|
-| **Random Rollout** | 2.87 ± 0.08 | 2.80 | 2.84 | -0.12 (ns) | -0.43** | ~0.53 (chance) |
-| **Rollout-Free** | 1.78 ± 0.12 | 1.77 | 1.77 | -0.01 (ns) | +0.08 (ns) | 0.53 (chance) |
-| **Opponent Model** | TBD | TBD | TBD | TBD | TBD | TBD |
+| Random Rollout | 2.87 ± 0.08 | 2.80 | 2.84 | -0.12 (ns) | -0.43** | ~0.53 |
+| Rollout-Free | 1.78 ± 0.12 | 1.77 | 1.77 | -0.01 (ns) | +0.08 (ns) | 0.53 |
+| Opponent Model | 2.62 ± 0.10 | 2.61 | 2.63 | -0.03 (ns) | +0.06 (ns) | ~0.53 |
 
-**결론**: 모든 방법에서 h ≠ expertise
+세 방법 모두 h가 전문성을 예측하지 못함을 보입니다.
 
----
-
-### 대안 접근: Feature-Based
+Feature-based 대안:
 
 | 방법 | 차원 | 개별 r | 결합 AUC | 해석 |
 |------|------|--------|----------|------|
-| **van Opheusden Features** | 17-dim | 0.035 (평균) | **0.84** | **강력한 예측력** |
-| **Planning Depth h** | 1-dim | 0.012 | 0.53 | Chance level |
+| van Opheusden Features | 17-dim | 0.035 (평균) | 0.84 | 강력한 예측력 |
+| Planning Depth h | 1-dim | 0.012 | 0.53 | Chance level |
 
-**결론**: Features는 expertise를 예측하지만, h는 예측하지 못함
+Features는 다변량 패턴을 통해 전문성을 예측합니다. 개별 features는 약하지만 (평균 |r| = 0.035, 0/17 유의함), 이들의 조합은 전문가와 비전문가를 강하게 구분합니다.
 
----
+## 발견 1: Rollout 방법이 중요함
 
-## 핵심 발견
+Random rollout은 h를 +1.09 스텝 (38% bias) 과대평가합니다. 이는 훈련이 실제 인간 게임 continuation(제약적, 전략적)을 사용하는 반면 추론은 random moves로 미래를 시뮬레이션(다양함, 탐색적)하기 때문입니다. 더 긴 horizon 모델이 다양한 미래로부터 불균형하게 이득을 보아 P(h=4)를 부풀립니다.
 
-### 발견 1: Rollout 방법이 매우 중요함
+분포 변화:
+- Random Rollout: P(h=1)=13%, P(h=2)=23%, P(h=3)=30%, P(h=4)=35%
+- Rollout-Free: P(h=1)=47%, P(h=2)=24%, P(h=3)=19%, P(h=4)=10%
 
-**Random Rollout Artifact**:
-- h를 **+1.09 스텝 (38%)** 과대평가
-- P(h=4) 왜곡: 35% → 10% (rollout-free)
-- 메커니즘: 랜덤 미래가 인간 행동과 불일치
+Rollout-free 방법은 훈련과 추론 모두에서 실제 게임 미래를 사용하여 이 artifact를 제거합니다. Opponent model rollout은 bias를 줄이지만 완전히 제거하지는 못합니다 (rollout-free 대비 +0.84 스텝).
 
-**분포 변화**:
-```
-Random Rollout: P(h=1)=13%, P(h=2)=23%, P(h=3)=30%, P(h=4)=35%
-Rollout-Free: P(h=1)=47%, P(h=2)=24%, P(h=3)=19%, P(h=4)=10%
+권장사항: 실제 미래가 데이터에서 관찰 가능할 때는 rollout-free 방법을 사용하세요.
 
-변화: h=4 → h=1로 대규모 이동
-```
+## 발견 2: 인간은 근시안적으로 계획함
 
-**권장사항**: 미래가 데이터에 있을 때는 항상 rollout-free 사용
+Rollout-free 추정치: E[h] = 1.78 ± 0.12
 
----
+분포:
+- 47%의 수: h=1 (반응적, 즉각 대응)
+- 24%의 수: h=2 (단기 계획)
+- 19%의 수: h=3 (중기 계획)
+- 10%의 수: h=4 (장기 계획)
 
-### 발견 2: 인간은 근시안적으로 계획함
+이는 플레이어가 search tree에서 6-7 스텝을 탐색한다는 van Opheusden의 발견(PV depth)보다 훨씬 얕습니다. 이 차이는 tree exploration breadth(얼마나 넓게 탐색하는가)와 decision horizon(어디까지가 선택을 결정하는가) 간 구분을 반영합니다.
 
-**Rollout-free 추정치**: E[h] = 1.78 ± 0.12
+PV depth = behavioral h + verification depth
 
-**분포**:
-```
-47%의 수: h=1 (즉각 반응, 바로 대응)
-24%의 수: h=2 (단기 계획)
-19%의 수: h=3 (중기 계획)
-10%의 수: h=4 (장기 계획)
-```
+예시: 선택이 좋은지 검증하기 위해 6 스텝 탐색 (PV = 6), 하지만 어떤 수를 둘지 결정하는 것은 처음 2 스텝 (h = 2). 나머지 4 스텝은 pruning과 검증이지 의사결정이 아닙니다.
 
-**van Opheusden PV depth와 비교**:
-```
-van Opheusden PV depth: 6-7 스텝 (탐색 트리 깊이)
-우리의 behavioral h: 1.8 스텝 (결정 관련 horizon)
+## 발견 3: Expertise Paradox는 강건함
 
-차이: 4-5 스텝
+Planning depth는 세 방법 모두에서 전문성과 관계가 없습니다:
+- Random rollout: r = -0.12, p = 0.47, Expert h = Novice h
+- Rollout-free: r = -0.01, p = 0.94, Expert h = Novice h
+- Opponent model: r = -0.03, p = 0.86, Expert h = Novice h
 
-해석: 인간은 깊게 탐색하지만 국지적으로 결정함
-```
+이 null result는 rollout artifact 제거 후에도 지속됩니다. 이는 진짜 현상을 나타냅니다: h는 이 과제에서 전문성과 직교합니다.
 
----
+## 발견 4: Features가 Expertise를 강하게 예측함
 
-### 발견 3: Expertise Paradox는 강건함
+Van Opheusden의 17차원 features는 전문가 분류에서 AUC = 0.84를 달성하며, h의 AUC = 0.53 (chance level)과 비교됩니다. +0.31의 차이는 58.5% 향상을 나타냅니다.
 
-**방법론 전반에 걸쳐 테스트됨**:
-- Random rollout: Elo와 무상관 (r = -0.12, p = 0.47)
-- Rollout-free: Elo와 무상관 (r = -0.01, p = 0.94)
-- 둘 다: Expert h ≈ Novice h (차이 없음)
+개별 features는 약하지만 (Elo와 평균 |r| = 0.035, 0/17이 p < 0.05에서 유의함), 다변량 조합은 강합니다. 이는 전문성이 어떤 단일 측면에서의 우수함이 아니라 여러 heuristic 차원에 걸친 균형잡힌 프로필을 반영함을 나타냅니다.
 
-**함의**: 
-- rollout artifact가 아님 (artifact 제거 후에도 지속)
-- 진짜 패턴: h는 expertise와 직교함
+상관 크기 상위 features:
+1. 4-in-a-row horizontal: r = -0.244, p = 0.130 (유의하지 않음)
+2. Connected 2-in-a-row diag1: r = +0.054, p = 0.742
+3. 3-in-a-row diag1: r = +0.049, p = 0.765
 
----
+가장 강한 개별 feature조차 유의성에 도달하지 못합니다. 전문성은 패턴에 관한 것이지 개별 구성요소가 아닙니다.
 
-### 발견 4: Features가 Expertise를 강력히 예측함
+## van Opheusden et al. (2023)과의 조화
 
-**다변량 패턴**:
-- 개별 features: 약함 (평균 |r| = 0.035, 17개 중 0개 유의)
-- 결합 features: 강함 (AUC = 0.84, 정확도 = 77.5%)
+van Opheusden은 "Expertise increases planning depth in human gameplay"라고 보고했지만, 실제 발견은 expert PV depth (6.23 스텝)가 novice PV depth (7.29 스텝)보다 낮다는 것이며, r = -0.50, p < 0.01입니다. 그들은 전문가가 얕은 트리로 더 효율적으로 탐색한다고 결론지었습니다.
 
-**h와 비교**:
-```
-Features: AUC = 0.840 (강력한 구분)
-h: AUC = 0.530 (chance level)
+우리의 발견: Expert behavioral h = 1.769, Novice h = 1.768, r = -0.012, p = 0.94. Planning depth는 전문성과 관계가 없습니다.
 
-차이: +0.310 (58.5% 향상)
-```
+두 발견 모두 호환 가능합니다. PV depth와 behavioral h가 다른 구성개념을 측정하기 때문입니다:
 
-**해석**: Expertise = 다변량 heuristic 패턴, planning depth 아님
+PV depth (van Opheusden):
+- 계산 effort를 측정하는 search tree exploration metric
+- 전문가에게 더 낮음 (더 나은 heuristics를 통한 효율적 pruning)
 
----
+Behavioral h (우리 연구):
+- 선택을 결정하는 거리를 측정하는 decision-relevant horizon
+- 기술 수준에 걸쳐 동일함 (과제 요구사항이 유사함)
 
-## 이론적 통합
+둘 다 같은 결론을 지지합니다: 전문성은 더 나은 heuristics(무엇을 평가하는가)로부터 나오며, 더 깊은 planning(얼마나 앞을 보는가)이 아닙니다. 전문가는 더 나은 heuristics가 공격적 pruning을 가능케 하기 때문에 더 효율적으로 탐색하지만, 모두가 능숙하게 플레이하려면 대략 2 스텝 앞을 봐야 하기 때문에 decision-relevant horizon은 유사합니다.
 
-### Van Opheusden (2023)과의 조화
+## Expertise 메커니즘 모델
 
-**그들의 발견**: "전문성이 planning depth를 증가시킨다"
-- Expert PV depth: 6.23 ± 1.30 (초보자보다 낮음)
-- 해석: 효율적 계획 (더 적은 탐색 필요)
+Novice 행동:
+- 여러 차원에 걸친 낮은 heuristics
+- 보상을 위한 깊은 탐색 (brute-force, 높은 PV depth)
+- 낮은 성능
+- h ≈ 1.8 (expert와 동일)
 
-**우리의 발견**: "Planning depth h는 전문성 수준 간 동일함"
-- Expert h: 1.77, Novice h: 1.77 (차이 없음)
-- 해석: 행동적 horizon은 변하지 않음
+Expert 행동:
+- 여러 차원에 걸친 고품질 heuristics
+- 얕은 탐색으로 충분 (효율적 pruning, 낮은 PV depth)
+- 높은 성능
+- h ≈ 1.8 (novice와 동일)
 
-**해결**: **PV depth ≠ behavioral h**
-```
-PV depth: 탐색 트리 깊이 메트릭
- 계산 노력을 측정
- 전문가가 낮음 (효율적 가지치기) 
+핵심 통찰: h는 과제 요구사항에 의해 제어되며 전문성이 아닙니다. 전문성은 heuristic 품질에서 나타나며 planning depth가 아닙니다.
 
-Behavioral h: 결정 관련 lookahead
- 행동 horizon을 측정
- 숙련도에 무관하게 동일 
+## IRL에 대한 함의
 
-둘 다 맞음: 다른 개념!
-```
+행동으로부터 보상을 추론할 때 h를 명시적으로 latent confounder로 모델링하세요. 다른 h 값이 구별 가능한 행동 패턴을 생성하므로 (93.8% discriminator accuracy), h를 모델링하지 않으면 보상 추정을 혼란시킬 수 있습니다.
 
----
+그러나 h를 전문성 예측에 사용하지 마세요. 모든 방법에 걸쳐 상관이 본질적으로 0입니다. 대신 van Opheusden features (AUC = 0.84)를 사용하세요.
 
-### Expertise 메커니즘 모델
+관찰 가능한 미래가 있는 실제 행동 데이터에 접근할 수 있을 때는 rollout-free 방법을 사용하세요. 이들은 distribution mismatch를 제거하고 (+38% bias 제거) Bayesian uncertainty quantification과 함께 편향되지 않은 h 추정을 제공합니다.
 
-**초보자 행동**:
-```
-낮은 품질의 heuristics + 깊은 탐색 (무차별 대입)
-→ 높은 PV depth (비효율적)
-→ 낮은 성능
-→ h ≈ 1.8 (전문가와 동일!)
-```
+## 인지과학에 대한 함의
 
-**전문가 행동**:
-```
-고품질 heuristics + 얕은 탐색 (효율적)
-→ 낮은 PV depth (가지치기)
-→ 높은 성능
-→ h ≈ 1.8 (초보자와 동일!)
-```
+개별 features는 약하지만 조합은 강하다는 발견은 전문성이 어떤 단일 차원을 최대화하는 것이 아니라 균형잡힌 heuristic 프로필을 개발하는 것을 포함함을 시사합니다. 개입은 고립된 기술이 아니라 heuristic 품질을 광범위하게 목표로 해야 합니다.
 
-**핵심 통찰**: h는 기술과 직교함
-- 과제 요구사항에 의해 통제됨, expertise가 아님
-- Expertise는 HEURISTIC 품질에서 나타남, planning depth가 아님
+Planning depth는 trait가 아니라 state-dependent로 보입니다. 모든 플레이어가 E[h] ≈ 1.77 주변에 군집하지만 (0.38 스텝의 좁은 플레이어 간 분산), 개별 수는 각 플레이어 내에서 크게 변합니다. 이는 h가 개인 정체성보다 게임 맥락에 따라 더 많이 변함을 시사합니다.
 
----
+Planning depth가 context-dependent라면, 관련 질문은 "이 사람이 얼마나 앞을 계획하는가"가 아니라 "이 사람이 언제 깊게 vs. 얕게 계획하는가"입니다. 임상 적용(불안, ADHD)의 경우, 평균 h가 아니라 맥락에 대한 h의 민감도를 분석하세요.
 
-## 실용적 함의
+## 요약
 
-### Planning-Aware IRL을 위해
+Planning depth 추정을 위한 세 방법은 rollout artifacts로 인해 다른 절대값(1.78 ~ 2.87)을 생성하지만, 모두 전문성과 동일한 null 관계를 보입니다. Rollout-free가 가장 정확한 방법입니다 (+38% bias 제거).
 
-**해야 할 것**:
-```python
-# h를 latent confounder로 모델링
-reward_function = learn_reward(behavior, h_explicit)
+인간은 4-in-a-row에서 근시안적으로 계획합니다 (E[h] = 1.78, 47%의 수가 반응적 h=1 planning). 이는 tree exploration metrics (PV depth = 6-7)보다 훨씬 얕습니다. PV depth가 검증 breadth를 측정하는 반면 behavioral h는 decision horizon을 측정하기 때문입니다.
 
-# expertise에는 features 사용
-expertise = predict_from_features(van_opheusden_features)
-```
+Planning depth는 전문성을 예측하지 못하지만 (AUC = 53%, chance level), van Opheusden의 heuristic features는 예측합니다 (AUC = 84%). 전문성은 planning depth가 아니라 다변량 heuristic 품질을 반영합니다. 이는 전문가가 더 낮은 PV depth를 갖는다는 van Opheusden의 발견과 조화됩니다: 둘 다 전문성이 효율적 탐색을 가능케 하는 더 나은 heuristics로부터 나온다는 관점을 지지합니다.
 
-**하지 말아야 할 것**:
-```python
-# h로 expertise 예측하지 말 것
-expertise = predict_from_h(h_estimate) # AUC = 0.53
+IRL의 경우, h를 latent confounder로 모델링하되 전문성 예측에는 features를 사용하세요 (h가 아님).
 
-# PV depth와 h를 혼동하지 말 것
-h_estimate = PV_depth # 다른 개념
-```
-
----
-
-### 인지 모델링을 위해
-
-**검증됨**:
-- van Opheusden features가 expertise를 포착함
-- PV depth가 탐색 효율성을 측정함
-- 전문가가 낮은 PV depth를 가짐 (효율적)
-
-**새로운 통찰**:
-- Behavioral h ≈ 1.8 (근시안적 계획)
-- h는 숙련도 간 동일함
-- Expertise는 다변량 heuristic 패턴
-
----
-
-### 방법론 개발을 위해
-
-**Rollout-free posterior**:
-- 분포 불일치 제거
-- 편향 없는 h 추정 (-1.09 편향 제거)
-- 계산 효율적
-- 베이지안 불확실성 정량화
-
-**사용 시기**:
-- 관측 가능한 미래가 있는 인간 데이터 
-- 정확한 h 추정 필요 
-- 시뮬레이션 artifact 회피 
-
-**사용하지 말아야 할 때**:
-- Off-policy 평가 
-- 가상의 미래 
-- 실시간 새로운 상황 
-
----
-
-## 다음 단계
-
-### 즉시 (1주)
-
-1. **Opponent model 버그 수정** (env.done → env.is_done())
-2. **Opponent model rollout 완료**
-3. **3가지 방법 비교** (random / opponent / rollout-free)
-
-**예상 결과**: E[h]가 1.78과 2.87 사이
-
----
-
-### 단기 (2-3주)
-
-1. **Context-dependent h 분석**
- - 게임 상태 features vs 수 단위 h
- - 위협 수준, 보드 밀도, 시간 압박
- - 테스트: 높은 위협 → 높은 h?
-
-2. **Feature 중요도 분석**
- - 어떤 feature 조합이 expertise를 예측하는가?
- - Decision tree / random forest
- - 해석 가능한 expertise 프로파일
-
-3. **방법 비교 논문 초안**
- - Rollout-free 방법 설명
- - Artifact 시연
- - 인간 근시안적 계획 발견
-
----
-
-### 중기 (1-2개월)
-
-1. **완전한 Planning-Aware IRL 논문**
- - 완전한 분석 통합
- - 이론적 프레임워크
- - van Opheusden 조화
-
-2. **보행자 횡단 적용**
- - Rollout-free 방법 적용
- - 새로운 도메인에서 h-expertise 관계 테스트
- - 일반화 검증
-
----
-
-## 완전 파일 인덱스
-
-### 문서
-```
-docs/
-├── ROLLOUT_FREE_ANALYSIS.md # Rollout-free 방법 상세
-├── ROLLOUT_METHOD_COMPARISON.md # 3가지 방법 비교
-├── ROLLOUT_COMPARISON_SUMMARY.md # 요약
-├── FEATURE_VS_H_COMPARISON.md # Feature vs h 분석
-├── COMPLETE_ANALYSIS_SUMMARY.md # 통합 요약 (영문)
-└── 완전_분석_요약_KR.md # 이 파일 (한글)
-```
-
-### 코드
-```
-fourinarow_airl/
-├── estimate_player_h_rollout_free.py # Rollout-free 구현 
-├── estimate_player_h_multiclass.py # Random rollout 구현 
-├── generate_trajectories_opponent_model.py # Opponent model (진행중)
-└── analyze_feature_based_expertise.py # Feature-based 분석 
-```
-
-### 결과
-```
-results/
-├── human_h_rollout_free_estimates.csv # Rollout-free h 추정
-├── human_h_multiclass_estimates.csv # Random rollout h 추정
-├── player_van_opheusden_features.csv # 40명 17-dim features
-└── feature_elo_correlations.csv # Feature-Elo 상관관계
-```
-
-### 그림
-```
-figures/
-├── rollout_free_posterior_results.png # Rollout-free 분석 (4개 subplot)
-├── multiclass_discriminator_results.png # Random rollout discriminator
-└── feature_based_expertise_analysis.png # Feature vs h 비교 (6개 subplot)
-```
-
----
-
-## 최종 요약 표
-
-| 분석 | 방법 | 결과 | 상태 | 결론 |
-|------|------|------|------|------|
-| **h 추정** | Random rollout | E[h]=2.87, +1.09 편향 | 완료 | Artifact |
-| **h 추정** | Rollout-free | E[h]=1.78, 편향없음 | 완료 | **정확함** |
-| **h 추정** | Opponent model | TBD | 진행중 | TBD |
-| **h로 Expertise** | 모든 방법 | AUC ≈ 0.53 (chance) | 완료 | **h ≠ expertise** |
-| **Features로 Expertise** | van Opheusden | AUC = 0.84 | 완료 | **Features 작동!** |
-
-**전체 결론**: 
-- h는 식별 가능 (93.8% discriminator 정확도)
-- Rollout-free가 최선의 방법 (artifact 없음)
-- 인간은 근시안적으로 계획 (h ≈ 1.8)
-- h는 expertise를 예측하지 못함 (강건한 null)
-- Features는 expertise를 예측함 (AUC = 0.84)
-
-**주요 통찰**: **Expertise = heuristic 품질, planning depth 아님**
-
----
-
-**최종 업데이트**: 2025-12-29
-**상태**: 3개 rollout 방법 중 2개 완료, feature 분석 완료
-**다음**: Opponent model 수정 + context-dependent h 분석
+**마지막 업데이트**: 2025-12-31

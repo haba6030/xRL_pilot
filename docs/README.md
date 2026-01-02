@@ -1,48 +1,82 @@
 # Documentation
 
-This folder contains analysis documentation for planning depth estimation from human game-playing behavior.
+Analysis documentation for planning depth estimation from human 4-in-a-row gameplay.
 
 ## Core Documents
 
 ### Method Documentation
 
-**ROLLOUT_FREE_ANALYSIS.md** - Rollout-free posterior method (recommended)
-- Eliminates distribution mismatch by using actual human futures
-- Result: E[h] = 1.78 ± 0.12 (unbiased estimate)
+**METHOD_COMPARISON.md** - Comparison with MusIK framework
+- MusIK algorithm (Mhammedi et al. 2023) vs. our approach
+- What we borrowed: Multi-step inverse modeling concept
+- What we did NOT implement: IKDP, layer-by-layer construction, policy cover
+- Methodological assumptions and limitations
+- Conservative interpretation: Decision-relevant temporal horizon
+- Recommended framing for PI presentation
+
+**ROLLOUT_FREE_ANALYSIS.md** - Rollout-free method details
+- Uses actual game continuations (no simulation)
+- Eliminates distribution mismatch artifact
+- Result: E[h] = 1.78 ± 0.12
 - State-dependent planning hypothesis
 
 **ROLLOUT_METHOD_COMPARISON.md** - Three-method comparison
-- Random rollout, Opponent model, Rollout-free
-- Distribution mismatch artifact: +1.09 step bias
+- Random rollout vs. Opponent model vs. Rollout-free
+- Distribution mismatch creates +1.09 step bias (61% overestimate)
+- Mechanism: Random futures more diverse than human futures
 
 ### Results Documentation
 
-**FEATURE_VS_H_COMPARISON.md** - Feature-based vs h-based expertise
-- Planning depth does NOT predict expertise (AUC = 0.53)
-- Van Opheusden features predict expertise (AUC = 0.84)
-- Expertise = heuristic quality, not planning depth
+**FEATURE_VS_H_COMPARISON.md** - Expertise analysis
+- Planning depth does NOT predict expertise (r = -0.01, p = 0.94)
+- Van Opheusden heuristic features DO predict expertise (AUC = 0.84)
+- Interpretation: Expertise = heuristic quality, not planning depth
 
-**COMPLETE_ANALYSIS_SUMMARY.md** - Integrated summary (EN)
-**완전_분석_요약_KR.md** - Integrated summary (KR)
+**COMPLETE_ANALYSIS_SUMMARY.md** - Integrated summary (English)
 
-**ROLLOUT_COMPARISON_SUMMARY.md** - Executive summary
-**van_Opheusden_비교_논의_KR.md** - van Opheusden comparison (KR)
+**ROLLOUT_COMPARISON_SUMMARY.md** - Executive summary of method comparison
 
-## Key Findings
+### Korean Documentation
 
-1. **Rollout method matters**: Random rollout overestimates h by +1.09 steps (38%)
-2. **Humans plan myopically**: E[h] = 1.78, with 47% of moves using h=1
-3. **Planning depth ≠ expertise**: No correlation with Elo or win rate
-4. **Features predict expertise**: Van Opheusden heuristics achieve AUC = 0.84
-5. **State-dependent planning**: h varies by game context, not player trait
+**완전_분석_요약_KR.md** - Complete analysis summary (Korean)
 
-## Deprecated Documentation
+**van_Opheusden_비교_논의_KR.md** - van Opheusden comparison (Korean)
 
-Moved to `../backup/`:
-- `docs_airl_future/`: AIRL-related documentation (future work)
-- `docs_planning/`: Planning and resource estimation documents
-- `docs_outdated/`: Superseded analyses and old summaries
+## Main Findings
+
+1. **Decision-relevant horizon is identifiable**: Discriminator accuracy 93.8% (h=1 vs h=4)
+
+2. **Estimated average depth**: E[h] = 1.78 steps
+   - Distribution: 47% h=1, 24% h=2, 19% h=3, 10% h=4
+   - Per-player range: 1.59 to 1.97 (0.38 step spread)
+
+3. **No correlation with expertise**: r = -0.01, p = 0.94 (Elo vs. E[h])
+   - Robust across all three estimation methods
+   - Experts: E[h] = 1.77, Novices: E[h] = 1.77
+
+4. **Heuristic features predict expertise**: Van Opheusden features achieve AUC = 0.84
+   - Top predictors: 3-in-a-row detection, center control, connected 2-in-a-row
+
+5. **Simulation method creates bias**: Random rollout overestimates by +1.09 steps (61%)
+   - Rollout-free eliminates this artifact
+
+6. **Within-player variance > between-player variance**: 7.4× more variation within than between
+   - Suggests state-dependent adaptation rather than stable trait
+
+## For PI Review
+
+Start with these in order:
+1. **README.md** (project root) - Overview and main findings
+2. **EXECUTIVE_SUMMARY.md** - One-page summary
+3. **METHOD_COMPARISON.md** - Critical methodological discussion
+4. **FEATURE_VS_H_COMPARISON.md** - Null result on expertise
+
+Key methodological points:
+- We measure decision-relevant temporal horizon (statistical construct)
+- Cannot distinguish forward simulation from pattern recognition
+- Two-player confound: s_{t+h} depends on both players' actions
+- Conservative interpretation more defensible than planning depth claim
 
 ---
 
-**Last updated**: 2025-12-31
+**Last updated**: 2026-01-02

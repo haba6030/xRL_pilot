@@ -1,425 +1,96 @@
-# Rollout Method Comparison: Complete Analysis
+# Executive Summary: Rollout Method Comparison
 
-**Comprehensive comparison of planning depth estimation methods**
+This document provides an overview of three methods for estimating planning depth from behavioral data: random rollout, rollout-free posterior, and opponent model rollout.
 
----
+## Core Question
 
-## Document Index
+Can we accurately estimate human planning depth h from observed actions in game-playing?
 
-This directory contains complete analysis of rollout methods for planning depth estimation:
+Answer: Yes, but the estimation method matters enormously. Random rollout creates a +38% bias by mismatching training and inference distributions. The rollout-free method eliminates this artifact by using actual game futures.
 
-1. **ROLLOUT_FREE_ANALYSIS.md** - Rollout-free posterior method and results
-2. **ROLLOUT_METHOD_COMPARISON.md** - Comparison of all three methods
-3. **This file** - Executive summary and cross-method insights
+## Three Methods Compared
 
----
+| Method | Train Distribution | Inference Distribution | Bias | E[h] |
+|--------|-------------------|----------------------|------|------|
+| Random Rollout | (s_t, s_{t+h}^human) | (s_t, s_{t+h}^random) | +1.09 | 2.87 |
+| Rollout-Free | (s_t, s_{t+h}^human) | (s_t, s_{t+h}^human) | None | 1.78 |
+| Opponent Model | (s_t, s_{t+h}^human) | (s_t, s_{t+h}^learned) | +0.84 | 2.62 |
 
-## Executive Summary
+Random rollout trains on actual human game continuations but simulates futures with random opponent moves during inference. This distribution mismatch causes longer-horizon models to benefit disproportionately from the diversity of random futures, inflating h estimates.
 
-### Research Question
-**Can we accurately estimate human planning depth h from behavioral data?**
+Rollout-free eliminates simulation entirely, using actual future states from the game records. Training and inference distributions match exactly.
 
-### Three Methods Tested
+Opponent model is a middle ground, simulating futures with a learned human-like opponent policy. More realistic than random but still introduces some mismatch.
 
-| Method | Train Distribution | Inference Distribution | Bias | E[h] | Status |
-|--------|-------------------|----------------------|------|------|--------|
-| **Random Rollout** | (s_t, s_{t+h}^human) | (s_t, s_{t+h}^random) | +1.09 | 2.87 | Complete |
-| **Rollout-Free** | (s_t, s_{t+h}^human) | (s_t, s_{t+h}^human) | None | 1.78 | Complete |
-| **Opponent Model** | (s_t, s_{t+h}^human) | (s_t, s_{t+h}^learned) | ? | ? | In Progress |
+## Key Findings
 
-### Key Findings
+Random rollout has a massive artifact: +1.09 step overestimation (38% bias). The distribution shift is dramatic:
+- Random: P(h=1)=13%, P(h=2)=23%, P(h=3)=30%, P(h=4)=35%
+- Rollout-free: P(h=1)=47%, P(h=2)=24%, P(h=3)=19%, P(h=4)=10%
 
-**1. Random Rollout Has Massive Artifact**
-```
-Overestimation: +1.09 steps (38%)
-Mechanism: Random futures mismatch human behavior
-Impact: P(h=4) inflated from 10% → 35%
-```
+Probability mass shifts from h=1 (reactive) to h=4 (far-sighted), making humans appear to plan much deeper than they actually do.
 
-**2. Humans Plan Myopically**
-```
-Actual E[h] ≈ 1.8 (rollout-free estimate)
-P(h=1) = 47.3% (nearly half of moves are reactive)
-P(h=4) = 9.7% (far-sighted planning is rare)
-```
+Humans plan myopically. The rollout-free estimate shows E[h] = 1.78, with nearly half of all moves best explained by h=1 (reactive planning). Only 10% of moves involve h=4 (far-sighted planning).
 
-**3. Planning Depth Does NOT Predict Expertise**
-```
-Random Rollout: r(Elo, E[h]) = -0.12, p = 0.47
-Rollout-Free: r(Elo, E[h]) = -0.01, p = 0.94
-Both methods: Expert h ≈ Novice h (no difference)
-```
+Planning depth does not predict expertise. All three methods show the same null result:
+- Random rollout: r(Elo, E[h]) = -0.12, p = 0.47
+- Rollout-free: r(Elo, E[h]) = -0.01, p = 0.94
+- Opponent model: r(Elo, E[h]) = -0.03, p = 0.86
 
-**Conclusion**: Expertise is about **heuristic quality**, not planning depth
+Expert h ≈ Novice h across all methods. This robust null result indicates planning depth is orthogonal to expertise in this task.
 
----
+## Understanding the Distribution Mismatch
 
-## Method Comparison Details
+Why does random rollout overestimate h?
 
-### Method 1: Random Rollout (Baseline)
+Training: Models learn P(action | state_t, state_{t+h}^human) where future states reflect actual strategic choices constrained by opponent behavior.
 
-**Procedure**:
-```python
-# Training
-train_pairs = [(s_t, s_{t+h}^human, a_t) for all human games]
-model_h = train(train_pairs)
+Inference with random rollout: We compute P(action | state_t, state_{t+h}^random) where futures are simulated with random opponent moves.
 
-# Inference (MISMATCH!)
-for action in legal_actions:
- future = simulate_random_rollout(h_steps) # Random!
- score = model_h.predict(s_t, future)
+Random futures are more diverse than human futures. The h=4 model sees four steps of random exploration, which provides more information than four steps of constrained human play. The discriminator learns to associate "diverse futures" with "high h," creating systematic overestimation.
 
-# Problem: future is random, not human-like
-```
+The rollout-free method sidesteps this by using actual futures: h=1 model sees one step of real constrained play, h=4 sees four steps of real constrained play. No artificial diversity.
 
-**Results**:
-- E[h] = 2.866 ± 0.075
-- P(h=1)=12.8%, P(h=2)=22.6%, P(h=3)=29.7%, P(h=4)=34.9%
-- No expertise discrimination
+## Comparison with van Opheusden PV Depth
 
-**Issues**:
-- Distribution mismatch between train/inference
-- Random futures are unrealistic
-- Systematic overestimation bias
+van Opheusden reported that players explore 6-7 steps in their search trees (PV depth), with experts having lower PV depth (6.23 steps) than novices (7.29 steps), r = -0.50, p < 0.01.
 
----
+Our finding: behavioral planning depth h = 1.78 steps, much shallower than PV depth, with Expert h = Novice h (no difference).
 
-### Method 2: Rollout-Free Posterior (Recommended)
+Both findings are compatible. PV depth measures search tree exploration breadth (how widely you search to verify choices). Behavioral h measures decision-relevant horizon (how far ahead determines your choice).
 
-**Procedure**:
-```python
-# Training (same as random rollout)
-train_pairs = [(s_t, s_{t+h}^human, a_t) for all human games]
-model_h = train(train_pairs)
+Decomposition: PV depth = behavioral h + verification depth
 
-# Inference (NO ROLLOUT!)
-for move_t in human_games:
- actual_futures = extract_real_futures(move_t, h=[1,2,3,4])
- for h in [1,2,3,4]:
- likelihood[h] = model_h.predict_proba(s_t, actual_futures[h], a_t)
+You might explore 6 steps to verify your choice is good (PV = 6), but only the first 2 steps determine which move you make (h = 2). The remaining 4 steps are pruning and verification.
 
- # Bayesian posterior
- P(h|t) = softmax(log(likelihood) + log(prior))
+Experts have lower PV depth because better heuristics enable efficient pruning. But the decision-relevant horizon is similar for everyone because task demands are similar.
 
-E[h] = mean over all moves
-```
+## Practical Recommendations
 
-**Results**:
-- E[h] = 1.777 ± 0.118
-- P(h=1)=47.3%, P(h=2)=24.0%, P(h=3)=19.0%, P(h=4)=9.7%
-- No expertise discrimination
+Use rollout-free methods whenever you have access to actual behavioral data with observable futures. They eliminate distribution mismatch, require no simulation, provide Bayesian posteriors with uncertainty quantification, and run efficiently.
 
-**Advantages**:
-- No distribution mismatch (uses real futures)
-- No rollout simulation needed
-- Bayesian posterior (uncertainty quantification)
-- Unbiased estimates
+If you must simulate futures (off-policy evaluation, real-time inference in novel situations), use a learned opponent model rather than random rollout. While not perfect, it substantially reduces bias (+0.84 steps vs +1.09 steps).
 
----
+Don't expect planning depth to predict expertise, at least in strategic games like 4-in-a-row. The null relationship is robust across all three methods with different biases. Expertise likely reflects heuristic quality rather than planning depth.
 
-### Method 3: Opponent Model Rollout (In Progress)
+When reporting h estimates, always specify the inference method. The choice creates a 38% difference in this analysis. Method comparisons should be standard practice.
 
-**Procedure**:
-```python
-# Training (same as others)
-train_pairs = [(s_t, s_{t+h}^human, a_t) for all human games]
-model_h = train(train_pairs)
+## Implications
 
-# Train opponent policy
-opponent_policy = train_on_human_games(features)
+For IRL: Model planning depth h explicitly as a latent confounder (different h produces distinguishable behavior), but don't use it to predict expertise. Use heuristic quality measures instead.
 
-# Inference (LEARNED ROLLOUT)
-for action in legal_actions:
- future = simulate_opponent_rollout(h_steps, opponent_policy) # Learned!
- score = model_h.predict(s_t, future)
-```
+For cognitive science: PV depth and behavioral h measure different aspects of planning. Tree exploration breadth (PV depth) reflects computational effort and pruning efficiency. Decision horizon (behavioral h) reflects how far ahead matters for choices. Expertise manifests in better heuristics enabling efficient pruning, not in deeper decision horizons.
 
-**Expected Results**:
-- E[h] between 1.78 and 2.87
-- Better than random, not as good as rollout-free
-- Partial mismatch (learned ≠ real)
+For methodology: Always match training and inference distributions when estimating latent variables from behavior. Distribution mismatch creates systematic artifacts that can be larger than real effects.
 
-**Status**: Implementation in progress
+## Summary
 
----
+Three methods for estimating planning depth produce systematically different results (1.78 to 2.87) due to train-inference distribution mismatch. Random rollout overestimates by +38%, opponent model by +32%, while rollout-free provides unbiased estimates.
 
-## Comparison Matrix
+Humans plan myopically (E[h] = 1.78, 47% of moves reactive h=1), much shallower than tree exploration metrics (PV depth = 6-7) suggest. The difference reflects that PV depth measures verification breadth while h measures decision horizon.
 
-| Metric | Random Rollout | Rollout-Free | Opponent Model | Winner |
-|--------|----------------|--------------|----------------|--------|
-| **Mean E[h]** | 2.87 | 1.78 | TBD | Rollout-Free (unbiased) |
-| **Std E[h]** | 0.075 | 0.118 | TBD | Random (artificially narrow) |
-| **P(h=1)** | 12.8% | 47.3% | TBD | Rollout-Free (realistic) |
-| **P(h=4)** | 34.9% | 9.7% | TBD | Rollout-Free (realistic) |
-| **Elo correlation** | -0.12 (ns) | -0.01 (ns) | TBD | Both fail |
-| **Computation** | Slow | Fast | Medium | Rollout-Free |
-| **Bias** | +1.09 | None | TBD | Rollout-Free |
-| **Interpretability** | Hard | Easy (Bayesian) | Medium | Rollout-Free |
+Planning depth does not predict expertise across all three methods (robust null result). Expertise likely reflects heuristic quality, consistent with van Opheusden's finding that better heuristics enable efficient pruning (lower PV depth for experts).
 
----
+The rollout-free method is recommended for future work on planning depth estimation from behavioral data.
 
-## Theoretical Implications
-
-### Finding 1: Distribution Mismatch Creates Systematic Bias
-
-**Evidence**:
-- Random rollout: +1.09 step overestimation
-- Consistent across all 40 participants
-- Mass shift from h=1 → h=4
-
-**Mechanism**:
-```
-Random rollout explores diverse, unlikely futures
-→ h=4 model benefits from seeing many states
-→ Discriminator learns "diversity = high h"
-→ Systematic bias toward higher h
-```
-
-**Lesson**: Always match train/inference distributions
-
----
-
-### Finding 2: Humans Use Context-Dependent Shallow Planning
-
-**Evidence**:
-- E[h] ≈ 1.8 (rollout-free)
-- 47% of moves are h=1 (reactive)
-- Only 10% are h=4 (far-sighted)
-
-**Comparison with van Opheusden (2023)**:
-```
-van Opheusden PV depth: 6-7 steps
-Our h estimate: 1.8 steps
-Difference: 4-5 steps
-
-Interpretation: PV depth ≠ decision-relevant planning depth
-```
-
-**Implications**:
-- PV depth measures search tree exploration
-- h measures decision-critical lookahead
-- Humans explore deeply but decide locally
-
----
-
-### Finding 3: Planning Depth is Orthogonal to Expertise
-
-**Evidence**:
-- Both methods: r(Elo, E[h]) ≈ 0
-- Expert h = Novice h (no difference)
-- Consistent with van Opheusden: Experts have LOWER PV depth
-
-**Theoretical Framework**:
-```
-Novice behavior = shallow heuristics + deep search (inefficient)
-Expert behavior = deep heuristics + shallow search (efficient)
-
-Result: Similar h across skill levels
-```
-
-**Implication**: Expertise is about **heuristic quality**, not planning depth
-
----
-
-## 🔍 Van Opheusden Comparison
-
-### Original Claim (van Opheusden 2023)
-
-"Expertise increases planning depth in human gameplay"
-
-**Evidence presented**:
-- Expert PV depth: 6.23 ± 1.30 steps
-- Novice PV depth: 7.29 ± 0.55 steps
-- Correlation: r = -0.50, p < 0.01
-
-**Their interpretation**: Experts plan MORE EFFICIENTLY (shallower search)
-
-### Our Findings
-
-**Planning depth h**:
-- Expert h: 1.769 (rollout-free)
-- Novice h: 1.768 (rollout-free)
-- Correlation: r = -0.01, p = 0.94
-
-**Our interpretation**: Experts and novices use SAME planning depth
-
-### Reconciliation
-
-**Hypothesis**: PV depth and h measure different things
-
-```
-PV depth (van Opheusden):
-- Measures search tree breadth/depth
-- Captures computational effort
-- Lower for experts (efficient pruning)
-
-Planning depth h (our work):
-- Measures decision-relevant lookahead
-- Captures behavioral signatures
-- Same across skill levels
-
-Relationship: PV_depth ≠ h_behavior
-```
-
-**Testable prediction**:
-- van Opheusden features (pruning, iterations) should correlate with expertise
-- Our h should NOT correlate with expertise
-- Confirmed in our data
-
----
-
-## 📋 Next Steps
-
-### Immediate: Complete Opponent Model Rollout
-
-**Implementation**:
-1. Train opponent policy from human games (LogisticRegression)
-2. Generate trajectories with learned opponent
-3. Train discriminator on opponent-rollout trajectories
-4. Estimate human h and compare with other methods
-
-**Expected outcome**:
-```
-Random (2.87) > Opponent (?) > Rollout-Free (1.78)
-```
-
-**Timeline**: 1-2 days
-
----
-
-### Follow-up: Feature-Based Expertise Analysis
-
-**Goal**: Test van Opheusden hypothesis directly
-
-**Method**:
-1. Extract van Opheusden features (17-dim) from human games
-2. Compute per-player averages
-3. Correlate with Elo / expertise
-4. Compare with h correlation
-
-**Expected outcome**:
-```
-Feature correlation with Elo: STRONG (r > 0.5)
-h correlation with Elo: NONE (r ≈ 0)
-
-Conclusion: Features predict expertise, h does not
-```
-
-**Why this matters**:
-- Validates our negative finding (h ≠ expertise)
-- Shows what DOES predict expertise (features)
-- Provides positive result for paper
-
-**Timeline**: 2-3 days
-
----
-
-### Extended: Context-Dependent h Analysis
-
-**Question**: Does h vary by game state?
-
-**Method**:
-1. Compute move-level h posteriors (already done)
-2. Analyze h vs game state features:
- - Board density (early vs late game)
- - Threat level (defensive vs offensive)
- - Time pressure (if available)
-3. Test: h increases with threat level?
-
-**Expected outcome**:
-- h is NOT fixed per player
-- h varies with context (threat → higher h)
-- Adaptive planning mechanism
-
-**Timeline**: 3-4 days
-
----
-
-## Publication Strategy
-
-### Paper 1: Method Comparison (Short)
-
-**Title**: "Distribution Mismatch Artifacts in Planning Depth Estimation from Behavior"
-
-**Contributions**:
-1. Rollout-free posterior method
-2. Demonstration of +1.09 step bias from random rollout
-3. Human myopic planning finding (h ≈ 1.8)
-
-**Target**: NeurIPS Workshop / ICML Workshop
-
-**Timeline**: 1-2 weeks after opponent model done
-
----
-
-### Paper 2: Planning-Aware IRL (Long)
-
-**Title**: "Planning Depth as Latent Confounder in Inverse Reinforcement Learning"
-
-**Contributions**:
-1. h identifiability (93.8% accuracy)
-2. Rollout method comparison
-3. Expertise orthogonal to h
-4. Feature-based expertise model
-
-**Target**: ICLR / NeurIPS main conference
-
-**Timeline**: 2-3 months
-
----
-
-## Key Takeaways
-
-### For This Project
-
-1. **Rollout-free method is correct** for h estimation
-2. **Humans plan myopically** (E[h] ≈ 1.8)
-3. **h does NOT predict expertise** (robust null result)
-4. **Need feature-based analysis** to explain expertise
-5. **Opponent model rollout** for complete comparison
-
-### For IRL Theory
-
-1. **Planning depth is identifiable** from behavior (93.8% accuracy)
-2. **But not always meaningful** (doesn't predict expertise)
-3. **Distribution mismatch matters** (+1.09 step bias)
-4. **Context-dependent planning** likely (h varies by state)
-
-### For Cognitive Modeling
-
-1. **PV depth ≠ decision-relevant h** (6-7 vs 1.8 steps)
-2. **Expertise = heuristic quality** not planning depth
-3. **Humans use shallow, adaptive planning** (47% h=1)
-4. **Pattern recognition > tree search** for expert behavior
-
----
-
-## Repository Organization
-
-```
-fourinarow_airl/
-├── docs/
-│ ├── ROLLOUT_FREE_ANALYSIS.md # Rollout-free method details
-│ ├── ROLLOUT_METHOD_COMPARISON.md # Three-method comparison
-│ └── ROLLOUT_COMPARISON_SUMMARY.md # This file (executive summary)
-│
-├── estimate_player_h_rollout_free.py # Rollout-free implementation
-├── estimate_player_h_multiclass.py # Random rollout implementation
-├── estimate_player_h_opponent_model.py # Opponent model (TBD)
-│
-├── results/
-│ ├── human_h_rollout_free_estimates.csv
-│ ├── human_h_multiclass_estimates.csv
-│ └── human_h_opponent_model_estimates.csv # TBD
-│
-└── figures/
- ├── rollout_free_posterior_results.png
- ├── multiclass_discriminator_results.png
- └── rollout_method_comparison.png # TBD
-```
-
----
-
-**Last Updated**: 2025-12-29
-**Status**: 2/3 methods complete, opponent model in progress
-**Next**: Implement opponent model rollout + feature-based expertise analysis
+**Last updated**: 2025-12-31

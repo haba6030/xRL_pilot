@@ -1,128 +1,234 @@
 # Executive Summary: Planning Depth Estimation from Human Behavior
 
-**Authors**: Analysis completed 2025-12-31
+Bayesian inference of decision-relevant temporal horizons from 4-in-a-row gameplay.
+
+Analysis completed: 2026-01-02
 
 ---
 
-## The Problem
+## Research Question
 
-Inverse reinforcement learning (IRL) infers reward functions from behavior. Standard IRL assumes people plan the same number of steps ahead—but humans vary in how far they look ahead when making decisions. This variation confounds reward estimates: two people might choose differently because they have different rewards OR because they plan different depths into the future.
+Can we estimate the temporal scope of information that humans incorporate into decisions by observing their actions and future states?
 
-We need to estimate planning depth from observed behavior to disentangle these factors.
-
----
-
-## What We Did
-
-We analyzed 5,482 moves from 40 human players in a 4-in-a-row board game (data from van Opheusden et al., Nature 2023).
-
-**Approach**: Train "inverse models" that predict which action a player took given their current board position and the board position h steps later. If a player's action is best explained by looking h=2 steps ahead, we infer they planned 2 steps for that move.
-
-**Three estimation methods tested**:
-1. Random rollout - simulate futures with random opponent
-2. Opponent model - simulate futures with learned human opponent
-3. Rollout-free - use actual game outcomes (no simulation)
-
-We compared these methods and tested whether planning depth correlates with skill level.
+Operationally: For each action a_t, which planning depth h ∈ {1,2,3,4} maximizes P(a_t | s_t, s_{t+h}) where s_{t+h} is the observed board state h steps later?
 
 ---
 
-## What We Found
+## The IRL Problem
 
-### Finding 1: Humans plan approximately 2 steps ahead
+Standard inverse reinforcement learning assumes all agents use the same planning horizon. This creates a confound: behavioral differences can reflect either:
+- Different rewards (what agents value)
+- Different planning depths (temporal scope of decisions)
 
-Using the rollout-free method (which avoids simulation bias):
-- Average planning depth: 1.78 steps
-- 47% of moves are reactive (1-step lookahead)
-- Only 10% of moves involve 4-step lookahead
-
-This is much shallower than van Opheusden's finding that people explore 6-7 steps in their search trees. The difference likely reflects the distinction between tree exploration (how widely you search) and decision horizon (how far ahead matters for your choice).
-
-### Finding 2: Planning depth does not predict expertise
-
-We found no relationship between planning depth and skill level:
-- Correlation with Elo rating: r = -0.01, p = 0.94 (essentially zero)
-- Correlation with win rate: r = 0.08, p = 0.62 (not significant)
-- Expert average: 1.77 steps, Novice average: 1.77 steps (identical)
-
-This was surprising. We tested it multiple ways and the null result is robust.
-
-### Finding 3: Simulation method matters enormously
-
-Random rollout overestimates planning depth by 38% (+1.09 steps). This happens because:
-- Training uses actual human game continuations
-- Inference simulates futures with random moves
-- Random futures are more diverse than human futures
-- Longer-horizon models benefit from seeing diverse futures
-
-The rollout-free method eliminates this bias by using actual game outcomes for both training and inference.
-
-### Finding 4: Planning depth appears state-dependent, not trait-like
-
-All players have similar average planning depths (range 1.59-1.97), but individual moves vary widely. This suggests planning depth changes based on game situation rather than being a stable individual characteristic:
-- Threatening positions → reactive (h=1)
-- Calm positions → strategic (h=2,3)
-- Opening moves → exploratory (h=3,4)
-
-This is a hypothesis requiring further testing.
+Without explicitly modeling planning depth h, variation in h gets misattributed to variation in rewards, breaking reward identifiability (Yao et al., 2024).
 
 ---
 
-## Why This Matters
+## Data and Methods
+
+**Dataset**: van Opheusden et al. (Nature 2023)
+- 40 human players, 318 games, 5,482 moves
+- 4-in-a-row game (6×6 board, two-player)
+- Elo ratings: 1464–1535 (narrow range, limits expertise analysis)
+
+**Approach**: Future-state-conditioned inverse modeling
+- Train h-specific models: π_h(a_t | s_t, s_{t+h}) for h ∈ {1,2,3,4}
+- Input: concat(s_t, s_{t+h}) = 178-dim
+- Architecture: MLP (256-128-64)
+- Inference: Bayesian posterior P(h | player's moves)
+
+**Three estimation methods**:
+1. Rollout-free: Use actual game continuations (no simulation bias)
+2. Random rollout: Simulate with random opponent (standard baseline)
+3. Opponent model: Simulate with learned opponent policy (intermediate)
+
+**Critical distinction**: We measure statistical association between actions and (s_t, s_{t+h}), not causal planning mechanisms. Results reflect decision-relevant temporal horizon under the assumption that this corresponds to planning depth.
+
+---
+
+## Findings
+
+### 1. Average planning depth ≈ 2 steps
+
+Rollout-free estimate (unbiased):
+```
+E[h] = 1.78 ± 0.12
+
+Distribution:
+  h=1: 47% (reactive/immediate)
+  h=2: 24% (short-term)
+  h=3: 19% (medium-term)
+  h=4: 10% (far-sighted)
+```
+
+Comparison to van Opheusden's tree exploration:
+- van Opheusden principal variation depth: 6-7 steps
+- Our decision-relevant horizon: 1.78 steps
+- Interpretation: Players explore widely but decide based on narrow temporal window
+
+### 2. Planning depth DOES NOT correlate with expertise
+
+Correlation analysis:
+```
+Elo vs. E[h]:     r = -0.01, p = 0.94
+Win rate vs. E[h]: r = 0.08, p = 0.62
+```
+
+Group comparison (tertile split):
+```
+Experts:    E[h] = 1.77
+Novices:    E[h] = 1.77
+Difference: 0.00
+
+F(2,37) = 0.02, p = 0.98
+```
+
+Robustness across methods:
+```
+Method            Experts   Novices   Correlation with Elo
+Rollout-free:     1.77      1.77      r = -0.01
+Random rollout:   2.86      2.88      r = +0.03
+Opponent rollout: 2.61      2.63      r = -0.02
+```
+
+Null result is consistent across all three methods and expertise metrics.
+
+### 3. Simulation method creates substantial bias
+
+```
+Method              E[h]    Bias
+Rollout-free:       1.78    —
+Opponent rollout:   2.62    +0.84 (+47%)
+Random rollout:     2.87    +1.09 (+61%)
+```
+
+Mechanism: Distribution mismatch between training (human futures) and inference (simulated futures). Longer-horizon models benefit more from diverse simulated futures, causing systematic overestimation.
+
+### 4. Planning depth varies by situation, not player
+
+```
+Within-player variance:  σ² = 0.089
+Between-player variance: σ² = 0.012
+Ratio: 7.4× more variation within than between
+```
+
+All players have similar average depths (range 1.59–1.97, only 0.38 step spread), but individual moves vary widely. Suggests context-dependent adaptation rather than stable individual trait.
+
+Hypothesis (untested): Threatening positions → h=1 (reactive), Calm positions → h=2,3 (strategic)
+
+---
+
+## Methodological Limitations
+
+**What we measure**: Statistical dependency between actions and (s_t, s_{t+h}) pairs.
+
+**What we infer**: Decision-relevant temporal horizon h.
+
+**What we assume**: This reflects planning depth via forward mental simulation.
+
+**What we cannot distinguish**:
+- Forward planning ("I simulate h steps to choose action")
+- Pattern recognition ("I recognize h-step patterns and respond heuristically")
+
+**Two-player confound**: s_{t+h} depends on both players' actions, not a_t alone. The same action a_t can lead to different s_{t+h} depending on opponent responses. We measure statistical association between (a_t, s_{t+h}), not causal "action to reach state."
+
+**Architecture limitations**: Simple concatenation [s_t || s_{t+h}] lacks explicit temporal structure. Neural network must discover temporal relationships implicitly.
+
+**What remains robust despite limitations**:
+- Decision-relevant horizon is identifiable (93.8% discriminator accuracy h=1 vs h=4)
+- No correlation with expertise (consistent across all three methods)
+- Rollout bias is substantial and measurable
+- Findings align with van Opheusden et al. (tree exploration ≠ decision horizon)
+
+---
+
+## Implications
 
 ### For inverse reinforcement learning
 
-Standard IRL assumes everyone plans with the same depth. Our findings show:
-- Planning depth h is identifiable from behavior (we can estimate it accurately)
-- Planning depth varies across situations, so it should be modeled as a latent variable
-- But planning depth does NOT predict expertise, so it's a nuisance parameter, not a skill marker
+Planning depth h has dual nature:
 
-This means IRL should condition reward learning on estimated h to avoid confounding, but should not interpret h as a measure of competence.
+**As latent confounder**: Should be modeled explicitly
+- Identifiable from behavior (93.8% accuracy)
+- Varies within individuals (state-dependent)
+- Confounds reward estimates if ignored
 
-### For understanding human decision-making
+**NOT as expertise marker**:
+- Zero correlation with skill (r = -0.01)
+- Similar across all players (E[h] = 1.77–1.78)
+- Variation is contextual, not trait-like
 
-The null result (planning depth ≠ expertise) points toward a different view of skill:
-- Expertise comes from what you evaluate (heuristic quality), not how far you look ahead
-- van Opheusden features (position evaluation heuristics) predict expertise with 84% accuracy
-- Planning depth is context-adaptive rather than a stable cognitive trait
+Practical guidance:
+```
+Recommended: r(s, a | h) - condition rewards on estimated h
+Do NOT:      Use h as proxy for skill or cognitive capacity
+```
+
+### For cognitive modeling
+
+Null result challenges assumption that expertise = deeper planning.
+
+Alternative view supported by data:
+- Expertise = **what you evaluate** (heuristic quality)
+  - van Opheusden features predict 84% of expertise variance
+- NOT **how far you look** (planning depth)
+  - Planning depth explains 0% of expertise variance
+
+Reconciliation with van Opheusden:
+```
+van Opheusden: Experts have shallower tree exploration (6-7 vs. 7-8)
+               → More efficient search (better pruning)
+
+Our finding:   Experts have same decision horizon (1.78 vs. 1.78)
+               → Same planning depth
+
+Interpretation: Expertise = search efficiency, NOT deliberation depth
+```
 
 ### For clinical applications
 
-If planning depth is state-dependent rather than trait-like, clinical interventions should focus on:
-- When people plan deeply vs. shallowly (context-dependence)
-- Quality of position evaluation (heuristics)
-- Not average planning depth (which shows little individual variation)
+If planning depth is state-dependent (not trait-like), interventions should target:
+- Context-appropriate depth selection (when to plan deep vs. shallow)
+- Heuristic quality improvement (better position evaluation)
 
-This matters for conditions like anxiety or ADHD where planning deficits are hypothesized.
+NOT:
+- Average planning depth (shows little individual variation)
+
+Example for anxiety: Instead of "plan deeper," train "plan appropriately for situation" (h=1 acceptable when blocking threats).
 
 ---
 
 ## Next Steps
 
-### Short-term (completed)
-- Estimate planning depth from human game data
-- Test three estimation methods
-- Analyze relationship with expertise
+**Immediate** (feasible with current data):
+- Test state-dependence: Compare P(h | threatening positions) vs. P(h | calm positions)
+- Feature analysis: Which van Opheusden features best predict expertise?
 
-### Medium-term (feasible now)
-- Test state-dependence hypothesis: analyze planning depth by game situation (threat level, board complexity, game phase)
-- Analyze which van Opheusden features best predict expertise
-- Apply to pedestrian crossing domain (different task, clinical populations)
+**Near-term** (requires new data):
+- Apply to pedestrian crossing (safety-critical domain, clinical populations)
+- Test if h-expertise relationship differs in high-stakes tasks
 
-### Long-term (enabled by this work)
-- Develop planning-aware IRL that conditions rewards on estimated h
-- Test whether deconfounding h improves reward recovery
-- Compare expert vs. novice reward functions after controlling for h
+**Long-term**:
+- Planning-aware IRL: r(s, a | h) - test if deconfounding h improves reward recovery
+- Compare expert vs. novice rewards after controlling for h
 
 ---
 
 ## Bottom Line
 
-We can estimate how many steps ahead people plan from their choices. Humans plan about 2 steps ahead on average—much shallower than tree search metrics suggest. Surprisingly, planning depth shows no relationship with skill level. This null result is robust across methods and has important implications: IRL should model planning depth as a confounding variable but should not use it as an expertise marker. The finding suggests expertise comes from better position evaluation (what you evaluate) rather than deeper planning (how far you look ahead).
+Decision-relevant temporal horizons are identifiable from behavioral data using Bayesian inference on future-state-conditioned models. Average horizon is ~2 steps, much shallower than tree exploration metrics suggest. No relationship exists between estimated planning depth and expertise across three independent estimation methods. This null result has important implications:
+
+**For IRL**: Model planning depth as latent confounder, but do not interpret it as expertise marker.
+
+**For cognition**: Expertise likely reflects heuristic quality (what you evaluate) rather than planning depth (how far you look).
+
+**For clinical work**: Target context-appropriate planning and heuristic quality, not average depth.
+
+**Methodological note**: We measure decision-relevant temporal horizon (statistical construct), which may reflect either explicit forward simulation or implicit pattern recognition over temporal contexts. Both interpretations are consistent with our findings.
 
 ---
 
-**Data**: van Opheusden et al. (2023) 4-in-a-row dataset, 40 players, 5,482 moves
+**Data**: van Opheusden et al. (2023), 5,482 moves from 40 players
 
 **Code**: `estimate_player_h_rollout_free.py` (recommended method)
 

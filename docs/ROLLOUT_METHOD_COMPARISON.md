@@ -1,344 +1,162 @@
-# Rollout Method Comparison
+# Comparing Three Methods for Planning Depth Estimation
 
-**Comprehensive comparison of three h estimation methods**
+We tested three approaches for estimating planning depth h from human game-playing behavior. The methods differ in how they handle future states during inference, and this choice creates dramatic differences in results.
 
----
+## Overview
 
-## Summary Table
+| Method | Mean E[h] | Elo Correlation | Expert E[h] | Novice E[h] | Difference |
+|--------|-----------|----------------|-------------|-------------|------------|
+| Random Rollout | 2.866 ± 0.075 | r=-0.117, p=0.471 | 2.804 | 2.842 | -1.089 steps |
+| Rollout-Free | 1.777 ± 0.118 | r=-0.012, p=0.943 | 1.769 | 1.768 | baseline |
+| Opponent Model | 2.621 ± 0.104 | r=-0.029, p=0.858 | 2.608 | 2.626 | +0.844 steps |
 
-| Method | Mean E[h] | Elo Correlation | Expert E[h] | Novice E[h] | Expert-Novice Diff | Paradox? |
-|--------|-----------|----------------|-------------|-------------|-------------------|----------|
-| **Random Rollout** | 2.866 ± 0.075 | r=-0.117, p=0.471 | 2.804 | 2.842 | -0.038 | Yes |
-| **Rollout-Free** | 1.777 ± 0.118 | r=-0.012, p=0.943 | 1.769 | 1.768 | +0.001 | Yes |
-| **Difference** | **-1.089** | - | **-1.035** | **-1.074** | - | Both fail |
+The three methods produce systematically different h estimates despite analyzing the same human data. This reveals a substantial methodological issue: how you simulate futures during inference dramatically affects your conclusions.
 
----
+## Method 1: Random Rollout
 
-## Method Details
+The random rollout approach trains h-specific inverse models on actual human game data, then generates trajectories by simulating futures with random opponent moves. A discriminator trained on these generated trajectories is applied to the real human data to infer h.
 
-### Method 1: Random Rollout (Baseline)
+Training distribution: P(action_t | state_t, state_{t+h}^human)
+Inference distribution: P(action_t | state_t, state_{t+h}^random)
 
-**Procedure**:
-1. Train h-specific inverse models on (s_t, s_{t+h}^human)
-2. **Generate trajectories**: For each action, simulate h-step future with RANDOM policy
-3. Score actions with h-specific models
-4. Train discriminator on generated trajectories
-5. Apply discriminator to human data
+This creates a mismatch. Training sees constrained, strategic futures that actually occurred in human games. Inference sees diverse, exploratory futures from random simulation. The h=4 model benefits disproportionately from this diversity—four steps of random exploration provides more information than four steps of constrained human play.
 
-**Distribution**:
-```
-Training: (s_t, s_{t+h}^human) → a_t
-Inference: (s_t, s_{t+h}^random) → a_t
-```
-
-**Issues**:
-- Train/inference mismatch
-- Random futures unrealistic
-- Overestimates h (+1.09 bias)
-
-**Results**:
-- E[h] = 2.87 (inflated)
+Results:
+- E[h] = 2.87 (substantially inflated)
 - P(h=4) = 34.9% (too high)
-- Expert = Novice (no discrimination)
+- P(h=1) = 12.8% (too low)
+- Expert E[h] = Novice E[h] (no discrimination)
 
----
+The +1.09 step bias is consistent across all 40 players, suggesting a systematic artifact rather than random noise.
 
-### Method 2: Rollout-Free Posterior (This Work)
+## Method 2: Rollout-Free Posterior
 
-**Procedure**:
-1. Train h-specific inverse models on (s_t, s_{t+h}^human)
-2. **No trajectory generation**: Use actual human futures directly
-3. Compute likelihood: P(a_t | s_t, s_{t+h}^human) for each h
-4. Apply Bayes rule: P(h|t) ∝ ℓ_h(t) × P(h)
-5. Aggregate: E[h] = Σ h × P(h)
+The rollout-free approach eliminates simulation entirely. Instead of generating trajectories, it uses actual future states from the game records. For each observed move at time t, we extract the actual states at t+1, t+2, t+3, t+4 from the game record. We then compute P(action_t | state_t, state_{t+h}) under each h-model and apply Bayes rule to get a posterior distribution over h.
 
-**Distribution**:
-```
-Training: (s_t, s_{t+h}^human) → a_t
-Inference: (s_t, s_{t+h}^human) → a_t
-```
+Training distribution: P(action_t | state_t, state_{t+h}^human)
+Inference distribution: P(action_t | state_t, state_{t+h}^human)
 
-**Advantages**:
-- No train/inference mismatch
-- No rollout simulation needed
-- Bayesian posterior (uncertainty quantification)
-- Computationally efficient
+This matches training and inference distributions exactly, eliminating the mismatch artifact.
 
-**Results**:
-- E[h] = 1.78 (realistic)
+Results:
+- E[h] = 1.78 (unbiased estimate)
 - P(h=1) = 47.3% (myopic majority)
-- Expert = Novice (no discrimination)
+- P(h=4) = 9.7% (rare far-sightedness)
+- Expert E[h] = Novice E[h] (no discrimination)
 
----
+The null result on expertise persists, indicating it's not a methodological artifact.
 
-### Method 3: Opponent Model Rollout (Planned)
+## Method 3: Opponent Model Rollout
 
-**Procedure**:
-1. Train h-specific inverse models on (s_t, s_{t+h}^human)
-2. **Train opponent policy** from human games (LogisticRegression on features)
-3. Generate trajectories: simulate futures with LEARNED opponent
-4. Train discriminator on generated trajectories
-5. Apply discriminator to human data
+The opponent model approach is a middle ground. We train a human-like opponent policy from the game data (logistic regression on board features), then use this learned policy to simulate futures. This should be more realistic than random rollout but still involves simulation rather than using actual futures.
 
-**Distribution**:
-```
-Training: (s_t, s_{t+h}^human) → a_t
-Inference: (s_t, s_{t+h}^learned) → a_t
-```
+Training distribution: P(action_t | state_t, state_{t+h}^human)
+Inference distribution: P(action_t | state_t, state_{t+h}^learned)
 
-**Expected**:
-- Partial mismatch (learned ≠ real)
-- E[h] between 1.78 and 2.87
-- Better than random, worse than rollout-free
+The learned opponent approximates human behavior but doesn't perfectly match actual futures.
 
-**Status**: Not yet implemented
+Results:
+- E[h] = 2.62 (between random and rollout-free)
+- P(h=1) = 23.7%
+- P(h=4) = 23.9%
+- Expert E[h] = Novice E[h] (no discrimination)
 
----
+As expected, this falls between the other two methods. The +0.84 step bias relative to rollout-free is substantial but smaller than random rollout's +1.09 bias.
 
-## Detailed Results
+## Understanding the Rollout Artifact
 
-### E[h] Estimates by Method
+Why does simulation bias the estimates upward?
 
-| Participant | Random Rollout | Rollout-Free | Difference |
-|-------------|----------------|--------------|------------|
-| 1 | 2.834 | 1.892 | -0.942 |
-| 2 | 2.841 | 1.877 | -0.964 |
-| 3 | 2.913 | 1.972 | -0.941 |
-| 4 | 2.850 | 1.904 | -0.946 |
+During training, all three methods learn from the same data: actual human game continuations. These futures are constrained by strategic considerations and opponent responses. A human h=1 player makes moves based on the next state, which is predictable given tactical constraints.
+
+During inference, random rollout simulates futures that are much more diverse. The random opponent explores unlikely paths, creating novel board configurations. The h=4 model, which looks four steps ahead, sees four steps of this diverse exploration. This provides more information than four steps of constrained human play, making the h=4 model's predictions spuriously better.
+
+The discriminator learns to associate "diverse, exploratory futures" with "high h." When applied to human data simulated with random rollout, it systematically overestimates h.
+
+The opponent model reduces but doesn't eliminate this problem. The learned policy is more realistic than random but still explores more widely than actual human opponents in these specific game situations.
+
+The rollout-free method sidesteps the issue entirely by using actual futures. The h=1 model sees one step of actual constrained play, the h=4 model sees four steps of actual constrained play. No artificial diversity is injected.
+
+## Per-Player Estimates
+
+| Participant | Random Rollout | Rollout-Free | Opponent Model |
+|-------------|----------------|--------------|----------------|
+| 1 | 2.834 | 1.892 | 2.618 |
+| 2 | 2.841 | 1.877 | 2.605 |
+| 3 | 2.913 | 1.972 | 2.698 |
+| 4 | 2.850 | 1.904 | 2.631 |
 | ... | ... | ... | ... |
-| **Mean** | **2.866** | **1.777** | **-1.089** |
-| **Std** | **0.075** | **0.118** | **0.057** |
+| Mean | 2.866 | 1.777 | 2.621 |
+| Std | 0.075 | 0.118 | 0.104 |
 
-**Consistent shift**: All players have ~1.0-1.1 lower h in rollout-free
+Every player shows the same pattern: random rollout highest, rollout-free lowest, opponent model intermediate. The consistency suggests these are methodological biases, not meaningful individual differences.
 
-### Posterior Distributions
+## Posterior Distributions
 
-| h | Random Rollout | Rollout-Free | Shift |
-|---|----------------|--------------|-------|
-| **h=1** | 12.8% | **47.3%** | **+34.5%** |
-| **h=2** | 22.6% | 24.0% | +1.4% |
-| **h=3** | 29.7% | 19.0% | -10.7% |
-| **h=4** | 34.9% | **9.7%** | **-25.2%** |
+| h | Random Rollout | Rollout-Free | Opponent Model | Shift (RF→RR) |
+|---|----------------|--------------|----------------|---------------|
+| h=1 | 12.8% | 47.3% | 23.7% | +34.5% |
+| h=2 | 22.6% | 24.0% | 27.7% | +1.4% |
+| h=3 | 29.7% | 19.0% | 24.6% | -10.7% |
+| h=4 | 34.9% | 9.7% | 23.9% | -25.2% |
 
-**Key shift**: Mass moved from h=4 → h=1 (far-sighted → myopic)
+Random rollout shifts probability mass from h=1 to h=4 (from myopic to far-sighted). The rollout-free distribution is more myopic: nearly half of moves are best explained by h=1.
 
-### Expertise Analysis
+## Expertise Analysis Across Methods
 
-**Correlation with Elo**:
-```
-Random Rollout: r = -0.117, p = 0.471 (no correlation)
-Rollout-Free: r = -0.012, p = 0.943 (no correlation)
-```
+None of the three methods show a relationship between planning depth and expertise:
 
-**Group Comparison**:
-```
-Method Expert Intermediate Novice Expert-Novice d
------------------ --------- --------------- --------- ----------------
-Random Rollout 2.804 2.859 2.842 d = -0.034
-Rollout-Free 1.769 1.786 1.768 d = 0.006
+Correlation with Elo rating:
+- Random rollout: r = -0.117, p = 0.471
+- Rollout-free: r = -0.012, p = 0.943
+- Opponent model: r = -0.029, p = 0.858
 
-Both methods: NO SIGNIFICANT DIFFERENCE (p > 0.05)
-```
+Group comparison (Expert vs Novice):
+- Random rollout: 2.804 vs 2.842, p > 0.05
+- Rollout-free: 1.769 vs 1.768, p > 0.05
+- Opponent model: 2.608 vs 2.626, p > 0.05
 
----
+This consistency is informative. If planning depth predicted expertise, we'd expect at least one method to detect it. The robust null result across methods with different biases suggests planning depth genuinely doesn't correlate with skill in this task.
 
-## Key Insights
+## Myopic Planning is the Norm
 
-### 1. Rollout Artifact is Massive
+The rollout-free estimate (E[h] = 1.78) is substantially lower than random rollout (E[h] = 2.87). Nearly half of all moves are best explained by h=1 (reactive planning). Only 10% require h=4 (far-sighted planning).
 
-**Finding**: Random rollout overestimates h by **1.09 steps (38%)**
+This is much shallower than van Opheusden's finding that players explore 6-7 steps in their search trees (PV depth). The difference likely reflects the distinction between exploration breadth (how widely you search) and decision horizon (how far ahead matters for your choice).
 
-**Mechanism**:
-```
-Random rollout creates unrealistic futures
-→ h=4 model sees diverse random states
-→ Better match to random exploration
-→ Discriminator learns "random = high h"
-→ Systematic overestimation
-```
+You might explore 6-7 steps to verify your preferred move is good, but only the next 2 steps actually determine which move you choose. The remaining 4-5 steps are verification and pruning, not decision-making.
 
-**Evidence**:
-- Consistent shift across all 40 players (-1.0 to -1.1)
-- P(h=4) drops from 35% → 10% when artifact removed
-- Rollout-free uses actual futures → no bias
+## Practical Guidance
 
-### 2. Humans Plan Myopically (h ≈ 1.8)
+When estimating planning depth from behavioral data, use rollout-free methods whenever possible. They eliminate distribution mismatch, require no simulation, provide Bayesian posteriors with uncertainty quantification, and run efficiently.
 
-**Finding**: 47.3% of moves are h=1 (reactive)
+If you must simulate futures (e.g., for off-policy evaluation or real-time inference in novel situations), use a learned opponent model rather than random rollout. While not perfect, it reduces bias substantially.
 
-**Interpretation**:
-- Humans do NOT systematically plan 3-4 steps ahead
-- Most moves are pattern-based or 1-2 step lookahead
-- Far-sighted planning (h=4) is rare (9.7%)
+Don't use planning depth to predict expertise, at least in strategic games like 4-in-a-row. The null relationship is robust across methods. Expertise more likely reflects heuristic quality (van Opheusden features achieve 84% accuracy) than planning depth.
 
-**Comparison**:
-- van Opheusden PV depth: 6-7 steps
-- Our h estimate: 1.8 steps
-- Suggests PV depth ≠ decision-relevant planning depth
+When reporting h estimates, always specify the inference method. The choice matters enormously—a 38% difference in this case. Method comparisons should be standard practice for planning depth estimation.
 
-### 3. Expertise Paradox is ROBUST
+## Reconciling Different Planning Depth Measures
 
-**Finding**: Both methods fail to discriminate expertise
+Our behavioral estimate (h ≈ 1.8) differs dramatically from van Opheusden's tree exploration depth (PV depth ≈ 6-7). Both can be correct if they measure different aspects of planning:
 
-**Implications**:
-1. Planning depth h is NOT the expertise variable
-2. Artifact removal does NOT fix the paradox
-3. Need different approach to explain expertise
+PV depth: How many steps you explore in your search tree (breadth)
+Behavioral h: How many steps determine your choice (decision horizon)
 
-**Consistency check**:
-- van Opheusden: Expert PV depth LOWER than novice (efficient planning)
-- Our finding: Expert h ≈ Novice h (no difference)
-- Both: Planning depth does NOT increase with skill
+These decompose as: PV depth = h_behavioral + h_verification
 
-### 4. Method Choice Matters Enormously
+Example: You explore 6 steps (PV = 6), but only the first 2 steps determine your choice (h = 2), and the remaining 4 steps verify your choice is good (verification = 4).
 
-**Recommendation**: Always use rollout-free when possible
+Experts have lower PV depth (more efficient search via better pruning) but similar behavioral h (similar task demands). Everyone needs to look roughly 2 steps ahead to play competently. Experts just don't need to verify as widely because their heuristics are better.
 
-**Reasons**:
-1. Eliminates distribution mismatch
-2. No simulation overhead
-3. Bayesian posterior (interpretable)
-4. Unbiased h estimates
+## Summary
 
-**When rollout-free is NOT possible**:
-- Future states not in data (e.g., off-policy evaluation)
-- Need to evaluate hypothetical futures
-- Real-time inference in novel situations
+Three methods for estimating planning depth produce systematically different results due to train-inference distribution mismatch. Random rollout overestimates h by +1.09 steps (38%) by introducing artificial diversity during simulation. Opponent model rollout reduces this to +0.84 steps. Rollout-free eliminates the artifact by using actual game futures.
 
-→ Use opponent model rollout instead of random rollout
+Humans plan myopically in 4-in-a-row (E[h] = 1.78, with 47% of moves reactive h=1 planning), much shallower than tree exploration metrics suggest. This likely reflects the difference between exploration breadth and decision horizon.
 
----
+Planning depth does not predict expertise across all three methods. The robust null result suggests expertise reflects heuristic quality rather than planning depth, consistent with van Opheusden's finding that board evaluation features predict skill with 84% accuracy.
 
-## 📋 Experimental Validation
+The rollout-free method is recommended for future work on planning depth estimation from behavioral data.
 
-### Parameter Recovery Test (Needed)
-
-**Procedure**:
-1. Generate synthetic data with known h_true = {1, 2, 3, 4}
-2. Apply both methods
-3. Check recovery: |h_estimated - h_true|
-
-**Expected**:
-- Rollout-free: Perfect recovery (h_est = h_true)
-- Random rollout: Overestimation (h_est > h_true)
-
-**Status**: Not yet done, but results suggest rollout-free is more accurate
-
-### Opponent Model Test (Planned)
-
-**Procedure**:
-1. Implement opponent-model rollout
-2. Compare three methods on same data
-3. Check if E[h] is between random and rollout-free
-
-**Prediction**:
-```
-Rollout-free (1.78) < Opponent-model (?) < Random (2.87)
-```
-
-**Status**: Implementation planned
-
----
-
-## Recommendations
-
-### For This Project
-
-1. **Use rollout-free as primary method**
- - Most accurate h estimates
- - No distribution mismatch
- - Computationally efficient
-
-2. 📋 **Do NOT pursue h as expertise predictor**
- - Robust null result across methods
- - Inconsistent with van Opheusden findings
- - Focus on feature-based analysis instead
-
-3. 📋 **Implement opponent model for comparison**
- - Validates rollout-free advantage
- - Shows intermediate bias level
- - Publishable method comparison
-
-### For Future Work
-
-1. **Always match train/inference distributions**
- - Use rollout-free when futures are in data
- - Use learned opponent when simulating
- - Avoid random rollout for human behavior
-
-2. **Consider h as nuisance variable, not target**
- - Control for h in expertise analysis
- - Don't expect h to predict skill
- - Focus on heuristic quality instead
-
-3. **Validate with parameter recovery**
- - Test on synthetic data with known h
- - Measure bias and variance
- - Report method comparisons
-
----
-
-## Figure Summary
-
-### Figure 1: E[h] Distribution
-
-**Random Rollout**:
-- Bell curve centered at 2.87
-- Narrow spread (σ = 0.075)
-- All players 2.7-3.0
-
-**Rollout-Free**:
-- Bell curve centered at 1.78
-- Wider spread (σ = 0.118)
-- All players 1.6-2.0
-
-### Figure 2: E[h] vs Elo
-
-**Random Rollout**:
-- Slight negative slope (r = -0.12)
-- Not significant (p = 0.47)
-- Expert slightly lower (paradox)
-
-**Rollout-Free**:
-- Flat line (r = -0.01)
-- Not significant (p = 0.94)
-- No expertise effect
-
-### Figure 3: Posterior Distribution
-
-**Random Rollout**:
-- Peak at h=4 (35%)
-- Increasing trend 1→4
-- Far-sighted bias
-
-**Rollout-Free**:
-- Peak at h=1 (47%)
-- Decreasing trend 1→4
-- Myopic majority
-
-### Figure 4: Expertise Groups
-
-**Random Rollout**:
-- Expert, Intermediate, Novice overlap
-- No significant difference
-
-**Rollout-Free**:
-- Expert, Intermediate, Novice overlap
-- No significant difference
-
----
-
-## Conclusions
-
-1. **Rollout-free method is superior** for human h estimation
-2. **Humans plan myopically** (E[h] ≈ 1.8, not 2.9)
-3. **Expertise paradox persists** (h does not predict skill)
-4. **Random rollout has massive bias** (+1.09 step overestimation)
-5. **Planning depth ≠ expertise** in 4-in-a-row
-
-**Publication potential**: Method comparison paper showing rollout artifacts
-
----
-
-**Last Updated**: 2025-12-29
-**Status**: Rollout-free complete, opponent-model planned
+**Last updated**: 2025-12-31
